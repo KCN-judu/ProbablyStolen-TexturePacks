@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (work in progress)
+## WIP
 
 Not released.
 
