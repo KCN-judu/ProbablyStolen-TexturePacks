@@ -2,15 +2,15 @@
 
 ![Texture Packs](preview.png)
 
-A mod for *Probably Stolen*: a standard for resource packs, and the loader that applies them. A texture pack is a small mod that holds pictures; Texture Packs puts them in place of the game's own, from items and windows to the shop, its fixtures and the customers. A manager lists the installed packs in priority order: switch each one on or off, and the pack at the top wins where two replace the same picture.
+A mod for *Probably Stolen* that replaces the game's pictures with the ones in texture packs. A texture pack is a small mod that holds pictures. Texture Packs puts them in place of the game's own: items, windows, the shop and its fixtures, the customers and the new-game screens. A pack manager lists the installed packs in priority order. Each pack can be switched on or off, and the pack at the top wins where two replace the same picture.
 
-**Work in progress.** Not released yet; things will change.
+**Work in progress.** Not released yet. Things will change.
 
 Part of the [Probably Stolen mods collection](https://github.com/KCN-judu/ProbablyStolen-Mods).
 
 ## Making a pack
 
-See [Making a texture pack](doc/manual/making-a-pack.md). The creator kit (`tools/kit.sh`) holds the catalog of every picture a pack can replace, placeholders of the right sizes, a script that exports the game's pictures from your own copy of the game, and a tool that builds the pack. It holds no game art.
+See [Making a texture pack](doc/manual/making-a-pack.md). The creator kit (`tools/kit.sh`) holds the catalog of every picture a pack can replace, placeholders of the right sizes, a script that exports the game's pictures from your own copy of the game, and a tool that builds the pack. It holds no game art. [How it works](doc/manual/how-it-works.md) describes what the mod patches.
 
 ## Build
 
@@ -35,6 +35,7 @@ tools/kit.sh          # the creator kit, out/TexturePackKit.zip
 | `tools/export/` | Reads the game's files: the inventory for the catalog, and the export for creators |
 | `tools/PackBuilder/` | Turns a folder of pictures into a pack |
 | `tools/SpriteProbe/` | Development mod that logs every sprite the game shows |
+| `tests/` | Headless tests of `src/*.Pure.cs`, and the run of the game's mod scanner |
 | `doc/manual/` | Documentation, in English |
 | `manifest.xml`, `preview.png` | What the game reads, next to the DLL |
 | `CHANGELOG.md` | Changes by version |

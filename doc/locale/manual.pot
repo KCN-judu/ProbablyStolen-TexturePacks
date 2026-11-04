@@ -1,0 +1,480 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Probably Stolen Mods documentation\n"
+"Report-Msgid-Bugs-To: https://github.com/KCN-judu/ProbablyStolen-Mods/issues\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: conf.json:summary
+msgid "Texture packs are small mods that hold pictures. Texture Packs puts them in place of the game's own, in the order you choose."
+msgstr ""
+
+#: manual/building.md:1
+msgid "Building"
+msgstr ""
+
+#: manual/building.md:3
+msgid "Requirements"
+msgstr ""
+
+#: manual/building.md:5
+msgid "*Probably Stolen*, game version 0.46D. The build compiles against the game's own assemblies in `Probably Stolen_Data/Managed`."
+msgstr ""
+
+#: manual/building.md:6
+msgid "Git Bash or another POSIX shell on Windows."
+msgstr ""
+
+#: manual/building.md:7
+msgid "The C# compiler that ships with Windows (`csc.exe` of .NET Framework 4)."
+msgstr ""
+
+#: manual/building.md:8
+msgid "To refresh the catalog after a game update: [Python](https://www.python.org/downloads/) 3.10 or newer, with the packages in `tools/export/requirements.txt`."
+msgstr ""
+
+#: manual/building.md:10
+msgid "Build"
+msgstr ""
+
+#: manual/building.md:17
+msgid "Two environment variables override the defaults:"
+msgstr ""
+
+#: manual/building.md:19
+msgid "Variable"
+msgstr ""
+
+#: manual/building.md:19
+msgid "Default"
+msgstr ""
+
+#: manual/building.md:24
+msgid "`out/texture_pack_template` holds the empty `TexturePack.dll` and a manifest that every pack starts from."
+msgstr ""
+
+#: manual/building.md:26
+msgid "Checks"
+msgstr ""
+
+#: manual/building.md:32
+msgid "It runs the decisions in `src/*.Pure.cs` headless, once on examples and once against plain reference models on generated input. When the game is installed and the mod is built, it also runs the game's mod scanner on the build. The mod passes when the scanner reports `capabilities: none` and no `HARD` line."
+msgstr ""
+
+#: manual/building.md:34
+msgid "The creator kit"
+msgstr ""
+
+#: manual/building.md:40
+msgid "This builds `Catalog.exe` and `PackBuilder.exe`, writes `catalog.tsv` and the placeholders, and zips the kit as `out/TexturePackKit.zip`. The kit holds no game art."
+msgstr ""
+
+#: manual/building.md:42
+msgid "After a game update, refresh the inventory first:"
+msgstr ""
+
+#: manual/building.md:49
+msgid "Sprite Probe"
+msgstr ""
+
+#: manual/building.md:51
+msgid "`tools/SpriteProbe/build.sh` builds a development mod that writes every sprite the game shows to `Player.log`, once, with the node that showed it. It helps to find what a pack can replace. It is not meant for play. `tools/SpriteProbe/build.sh --install` copies it to the game's `Mods` folder."
+msgstr ""
+
+#: manual/building.md:53
+msgid "Install by hand"
+msgstr ""
+
+#: manual/building.md:55
+msgid "Copy the folder `out/texture_packs` into the game's `Mods` folder, start the game, and enable the mod in the Mods menu. Mods load when the game starts, so restart after enabling or updating one."
+msgstr ""
+
+#: manual/building.md:57
+msgid "The mod declares no capabilities, so the game enables it without a permission prompt."
+msgstr ""
+
+#: manual/how-it-works.md:1
+msgid "How it works"
+msgstr ""
+
+#: manual/how-it-works.md:3
+msgid "![How the loader and the creator kit fit together: the game's loader decodes a pack's files, the file name tells what each picture replaces, the manager's order decides which pack wins, and each picture is checked before it is used](../attachments/texture-packs-architecture.png)"
+msgstr ""
+
+#: manual/how-it-works.md:5
+msgid "The left side of the diagram is the mod in the game. The right side is the [creator kit](making-a-pack.md). Dotted boxes are not part of the mod yet."
+msgstr ""
+
+#: manual/how-it-works.md:7
+msgid "Finding the packs"
+msgstr ""
+
+#: manual/how-it-works.md:9
+msgid "A pack is an enabled mod that lists `texture_packs` among its prerequisites. The game's loader has already decoded every PNG in the pack's `Textures` folder, so Texture Packs reads nothing from disk. It reads the packs again each time a pack's assets finish loading, after Apply, and when you enable the mod from the Mods menu after start-up."
+msgstr ""
+
+#: manual/how-it-works.md:11
+msgid "What a file name means"
+msgstr ""
+
+#: manual/how-it-works.md:13
+msgid "The game reads only the top of the `Textures` folder, so the file name says what a picture replaces:"
+msgstr ""
+
+#: manual/how-it-works.md:15
+msgid "Name"
+msgstr ""
+
+#: manual/how-it-works.md:15
+msgid "Replaces"
+msgstr ""
+
+#: manual/how-it-works.md:17
+msgid "The sprite `blender` in the Resources atlas `items/items_tool2` (`~` stands for `/`)"
+msgstr ""
+
+#: manual/how-it-works.md:18
+msgid "The single Resources sprite `window/machinery/bevel_frame`"
+msgstr ""
+
+#: manual/how-it-works.md:19
+msgid "The whole scene texture `store_mid` of that size"
+msgstr ""
+
+#: manual/how-it-works.md:21
+msgid "Scene textures carry their size in the name because several share a name. `wall`, for example, is 960x540 in the shop and 640x360 in the run summary. A PNG whose name is none of these is not a replacement, and the game keeps its own picture. A pack may hold such files."
+msgstr ""
+
+#: manual/how-it-works.md:23
+msgid "Which pack wins"
+msgstr ""
+
+#: manual/how-it-works.md:25
+msgid "For each picture, every switched-on pack that has a file for it is a candidate, the highest in the list first. A candidate the game cannot use is rejected before the order is considered: an unknown name or a wrong size. The first usable candidate wins. The usable ones below it count as covered."
+msgstr ""
+
+#: manual/how-it-works.md:27
+msgid "Sprites"
+msgstr ""
+
+#: manual/how-it-works.md:29
+msgid "Nearly every sprite reaches the game through `RenderHandler`. A postfix on `RenderHandler.LoadFromAtlasRaw` (which `LoadFromAtlas` and `TryLoadFromAtlas` call) and on `RenderHandler.LoadFromFile` swaps the game's sprite for the pack's. The new sprite has the original's size, pivot, pixels per unit and nine-slice border, so the game lays it out as before."
+msgstr ""
+
+#: manual/how-it-works.md:31
+msgid "`RenderHandler` keeps the window frame and grid sprites in fields it fills once. Texture Packs sets those fields again after every apply and after `RenderHandler.Awake`."
+msgstr ""
+
+#: manual/how-it-works.md:33
+msgid "Item shapes come from the transparency of the item's sprite. `GameItem.BuildShapeFromSprite` is patched to see the game's original, so a pack changes how an item looks and never which cells it takes."
+msgstr ""
+
+#: manual/how-it-works.md:35
+msgid "Scene textures"
+msgstr ""
+
+#: manual/how-it-works.md:37
+msgid "Backgrounds, fixtures, portraits and most of the interface are textures stored in the scene files. They do not pass through `RenderHandler`. After every scene load, Texture Packs copies the pack's pixels into the game's texture on the graphics card. Every sprite, animation frame and portrait cut from that texture changes at once. The original is kept aside and put back when the packs change or the mod is disabled."
+msgstr ""
+
+#: manual/how-it-works.md:39
+msgid "The sizes must match exactly. A texture the game stores compressed as DXT1 or DXT5 is compressed again at run time to match. Other compressed formats cannot be replaced, and a graphics device that cannot copy textures keeps the game's pictures. Each case writes one warning to `Player.log`."
+msgstr ""
+
+#: manual/how-it-works.md:41
+msgid "The saved order"
+msgstr ""
+
+#: manual/how-it-works.md:43
+msgid "The order is one line in the config, top first, each pack marked `+` (on) or `-` (off), for example `+hd_items;-old_ui;+dark_shop`. A `%` or `;` inside a pack id is written as `%25` or `%3B`."
+msgstr ""
+
+#: manual/index.md:1
+msgid "Texture Packs"
+msgstr ""
+
+#: manual/index.md:3
+msgid "![Texture Packs cover](../attachments/cover.png)"
+msgstr ""
+
+#: manual/index.md:5
+msgid "[!NOTE] Texture Packs is a work in progress and not released yet. Things will change."
+msgstr ""
+
+#: manual/index.md:8
+msgid "Texture Packs lets mods replace the game's pictures. A texture pack is a small mod that holds pictures. Texture Packs puts them in place of the game's own: items, windows and buttons, the shop and its fixtures, the customers and the new-game screens."
+msgstr ""
+
+#: manual/index.md:10
+msgid "A pack replaces only the pictures it holds. The game's own pictures stay everywhere else. You can install several packs. Where two of them replace the same picture, the one higher in your list wins."
+msgstr ""
+
+#: manual/index.md:12
+msgid "Using packs"
+msgstr ""
+
+#: manual/index.md:14
+msgid "Put the pack's folder in the game's `Mods` folder."
+msgstr ""
+
+#: manual/index.md:15
+msgid "Enable **Texture Packs** and the pack in the Mods menu, and restart the game."
+msgstr ""
+
+#: manual/index.md:16
+msgid "Click the settings button of Texture Packs in the Mods menu. It opens the pack manager."
+msgstr ""
+
+#: manual/index.md:18
+msgid "The pack manager lists the installed packs, the top one first. Each row has:"
+msgstr ""
+
+#: manual/index.md:20
+msgid "a switch, to turn the pack off without uninstalling it;"
+msgstr ""
+
+#: manual/index.md:21
+msgid "the pack's icon, if it has one, and a tooltip with its name, version, author, description and number of pictures;"
+msgstr ""
+
+#: manual/index.md:22
+msgid "the number of its pictures in use, the number left out because a pack higher up replaces the same picture, and the number skipped;"
+msgstr ""
+
+#: manual/index.md:23
+msgid "**Up** and **Down**, to move the pack one place."
+msgstr ""
+
+#: manual/index.md:25
+msgid "Changes wait until you click **Apply**. Apply saves the order and puts the packs in place at once, without a restart. **Close** or Escape drops changes you did not apply."
+msgstr ""
+
+#: manual/index.md:27
+msgid "A new pack starts on top and switched on. A pack that is no longer installed keeps its place in the saved order, so it returns to the same place when you install it again."
+msgstr ""
+
+#: manual/index.md:29
+msgid "Skipped pictures"
+msgstr ""
+
+#: manual/index.md:31
+msgid "A picture is skipped when the game has no picture of that name, or when its size differs from the game's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it."
+msgstr ""
+
+#: manual/index.md:33
+msgid "Settings"
+msgstr ""
+
+#: manual/index.md:35
+msgid "The pack manager is the only setting. The order and the switches are saved in the mod's config file as one entry, `packs`."
+msgstr ""
+
+#: manual/index.md:37
+msgid "Compatibility"
+msgstr ""
+
+#: manual/index.md:39
+msgid "Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite` and `ModConfigWindow.Open`. See [How it works](how-it-works.md)."
+msgstr ""
+
+#: manual/index.md:41
+msgid "To make a pack, see [Making a texture pack](making-a-pack.md)."
+msgstr ""
+
+#: manual/making-a-pack.md:1
+msgid "Making a texture pack"
+msgstr ""
+
+#: manual/making-a-pack.md:3
+msgid "A texture pack is a small mod that holds pictures and no code. Texture Packs puts them in place of the game's own: items, windows and buttons, the shop and its fixtures, the customers, the new-game screens."
+msgstr ""
+
+#: manual/making-a-pack.md:5
+msgid "The creator kit (`TexturePackKit.zip`) has what you need. This page goes through it step by step."
+msgstr ""
+
+#: manual/making-a-pack.md:7
+msgid "What is in the kit"
+msgstr ""
+
+#: manual/making-a-pack.md:9
+msgid "File"
+msgstr ""
+
+#: manual/making-a-pack.md:9
+msgid "What it is for"
+msgstr ""
+
+#: manual/making-a-pack.md:11
+msgid "Every picture a pack can replace: its file name, size and category. Open it in a spreadsheet."
+msgstr ""
+
+#: manual/making-a-pack.md:12
+msgid "One flat rectangle of the right size for every scene picture, sorted into the category folders."
+msgstr ""
+
+#: manual/making-a-pack.md:13
+msgid "A script that saves the game's own pictures from your copy of the game."
+msgstr ""
+
+#: manual/making-a-pack.md:14
+msgid "Turns your folder of pictures into a pack the game can load, and checks names and sizes on the way."
+msgstr ""
+
+#: manual/making-a-pack.md:15
+msgid "The empty file every pack carries (see below)."
+msgstr ""
+
+#: manual/making-a-pack.md:17
+msgid "The kit holds no game art. You get the original pictures from your own game with the export script, and you should not share them: only your own pictures go into a pack."
+msgstr ""
+
+#: manual/making-a-pack.md:19
+msgid "1. Export the game's pictures"
+msgstr ""
+
+#: manual/making-a-pack.md:21
+msgid "The export script reads the game's files directly; the game does not need to run. It needs [Python](https://www.python.org/downloads/) 3.10 or newer."
+msgstr ""
+
+#: manual/making-a-pack.md:23
+msgid "Open a terminal in the kit's `export` folder and install what the script uses:"
+msgstr ""
+
+#: manual/making-a-pack.md:29
+msgid "Export, giving the game folder:"
+msgstr ""
+
+#: manual/making-a-pack.md:35
+msgid "Everything in the catalog is written: about 1,800 pictures. `--only item` (or `ui`, `scene`, `character`, `new-game`) exports one category. Files already there are kept; `--overwrite` writes them again, for example after a game update."
+msgstr ""
+
+#: manual/making-a-pack.md:37
+msgid "The pictures land sorted the same way as the placeholders:"
+msgstr ""
+
+#: manual/making-a-pack.md:39
+msgid "Folder"
+msgstr ""
+
+#: manual/making-a-pack.md:39
+msgid "What is in it"
+msgstr ""
+
+#: manual/making-a-pack.md:41
+msgid "Every item, one file per item picture"
+msgstr ""
+
+#: manual/making-a-pack.md:42
+msgid "What the magnifier shows when appraising: letters, seals, chips, burger layers, prosthetic hands, and the magnifier itself"
+msgstr ""
+
+#: manual/making-a-pack.md:43
+msgid "Check cards and the guide pictures that show an item's details"
+msgstr ""
+
+#: manual/making-a-pack.md:44
+msgid "The full-screen body of a tool when it is open: scanners, the labeler"
+msgstr ""
+
+#: manual/making-a-pack.md:45
+msgid "Window frames and grid cells"
+msgstr ""
+
+#: manual/making-a-pack.md:46
+msgid "Buttons, panels, papers, the phone and tablet screens"
+msgstr ""
+
+#: manual/making-a-pack.md:47
+msgid "Whole backgrounds"
+msgstr ""
+
+#: manual/making-a-pack.md:48
+msgid "The main menu backgrounds and the run-summary picture"
+msgstr ""
+
+#: manual/making-a-pack.md:49
+msgid "The shop's walls, doors, windows, floor and lights, as layers"
+msgstr ""
+
+#: manual/making-a-pack.md:50
+msgid "What stands in the shop: phone, radio, calendar, display cases, the trash can, vending machines, the wires that light up"
+msgstr ""
+
+#: manual/making-a-pack.md:51
+msgid "People walking past, desk and tape animations"
+msgstr ""
+
+#: manual/making-a-pack.md:52
+msgid "Every customer portrait and clothing layer"
+msgstr ""
+
+#: manual/making-a-pack.md:53
+msgid "Specializations, perk icons and the new-game screens"
+msgstr ""
+
+#: manual/making-a-pack.md:55
+msgid "2. Draw"
+msgstr ""
+
+#: manual/making-a-pack.md:57
+msgid "Change any picture you like and leave the rest out: a pack only needs the files it replaces."
+msgstr ""
+
+#: manual/making-a-pack.md:59
+msgid "**Keep the size.** A picture must be exactly as wide and as tall as the game's. The size is in `catalog.tsv` and in every scene file name (`store_mid.960x540.png`). A picture of another size is left out."
+msgstr ""
+
+#: manual/making-a-pack.md:60
+msgid "**Keep the name.** The file name says what is replaced. Item and window pictures look like `items~items_tool2@blender.png`; scene pictures like `wall.960x540.png`. Use the names in `catalog.tsv` exactly, including lower case."
+msgstr ""
+
+#: manual/making-a-pack.md:61
+msgid "**Pictures with several frames** (walking people, customer clothing, icon sheets) are replaced as a whole. Keep each frame where it was."
+msgstr ""
+
+#: manual/making-a-pack.md:62
+msgid "**Perk icons are white.** The game colours them itself, so draw them in white and change the shape."
+msgstr ""
+
+#: manual/making-a-pack.md:63
+msgid "**Item shapes do not change.** Which cells an item takes comes from the game's picture, whatever your pack draws."
+msgstr ""
+
+#: manual/making-a-pack.md:64
+msgid "**Appraisal close-ups go with the item.** If you redraw an item that can be appraised, redraw its close-ups too, or the magnifier shows the old one."
+msgstr ""
+
+#: manual/making-a-pack.md:65
+msgid "**A pack icon is optional.** A file named `pack.png`, of any size, is shown next to your pack in the pack manager. It replaces no picture of the game."
+msgstr ""
+
+#: manual/making-a-pack.md:67
+msgid "You can keep your work in the category folders; the pack builder flattens them."
+msgstr ""
+
+#: manual/making-a-pack.md:69
+msgid "3. Build the pack"
+msgstr ""
+
+#: manual/making-a-pack.md:75
+msgid "The builder copies every PNG under your folder into the pack's `Textures` folder. It first deletes the PNG files already in that folder, so the pack holds exactly what is in your folder. It writes `TexturePack.dll` if the pack has none, and a `manifest.xml` if the pack has none. It stops without writing anything if two files share a name or a size is wrong, and notes any name that is not in the catalog."
+msgstr ""
+
+#: manual/making-a-pack.md:77
+msgid "Open `manifest.xml` and fill in the name, author and description. Two lines must stay as they are:"
+msgstr ""
+
+#: manual/making-a-pack.md:88
+msgid "The game only loads a mod that has code, so every pack carries `TexturePack.dll`, which does nothing. Every pack can use the same copy."
+msgstr ""
+
+#: manual/making-a-pack.md:90
+msgid "4. Try it"
+msgstr ""
+
+#: manual/making-a-pack.md:92
+msgid "Enable **Texture Packs** and your pack in the Mods menu and restart. To change the order of several packs, or to switch one off, use the [pack manager](index.md#using-packs). The game's log (`Player.log`) has a `[TexturePacks]` line that lists each pack with the number of pictures used, covered and skipped. Every skipped picture has its own warning that says why. When a scene loads, another line lists the scene pictures that were replaced. The pack manager shows the same numbers."
+msgstr ""

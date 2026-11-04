@@ -1,8 +1,8 @@
 # Making a texture pack
 
-A texture pack is a small mod that holds pictures and nothing else. Texture Packs puts them in place of the game's own: items, windows and buttons, the shop and its fixtures, the customers, the new-game screens.
+A texture pack is a small mod that holds pictures and no code. Texture Packs puts them in place of the game's own: items, windows and buttons, the shop and its fixtures, the customers, the new-game screens.
 
-This page walks through making one with the creator kit (`TexturePackKit.zip`).
+The creator kit (`TexturePackKit.zip`) has what you need. This page goes through it step by step.
 
 ## What is in the kit
 
@@ -32,7 +32,7 @@ The export script reads the game's files directly; the game does not need to run
    python export.py "C:\Program Files (x86)\Steam\steamapps\common\Probably Stolen" --out ..\originals
    ```
 
-   Everything in the catalog is written, about 1,800 pictures, in a few seconds. `--only item` (or `ui`, `scene`, `character`, `new-game`) exports one category. Files already there are kept; `--overwrite` writes them again, for example after a game update.
+   Everything in the catalog is written: about 1,800 pictures. `--only item` (or `ui`, `scene`, `character`, `new-game`) exports one category. Files already there are kept; `--overwrite` writes them again, for example after a game update.
 
 The pictures land sorted the same way as the placeholders:
 
@@ -57,11 +57,12 @@ The pictures land sorted the same way as the placeholders:
 Change any picture you like and leave the rest out: a pack only needs the files it replaces.
 
 - **Keep the size.** A picture must be exactly as wide and as tall as the game's. The size is in `catalog.tsv` and in every scene file name (`store_mid.960x540.png`). A picture of another size is left out.
-- **Keep the name.** The file name says what is replaced. Item and window pictures look like `Items~items_tool@wrench.png`; scene pictures like `wall.960x540.png`.
+- **Keep the name.** The file name says what is replaced. Item and window pictures look like `items~items_tool2@blender.png`; scene pictures like `wall.960x540.png`. Use the names in `catalog.tsv` exactly, including lower case.
 - **Pictures with several frames** (walking people, customer clothing, icon sheets) are replaced as a whole. Keep each frame where it was.
 - **Perk icons are white.** The game colours them itself, so draw them in white and change the shape.
 - **Item shapes do not change.** Which cells an item takes comes from the game's picture, whatever your pack draws.
 - **Appraisal close-ups go with the item.** If you redraw an item that can be appraised, redraw its close-ups too, or the magnifier shows the old one.
+- **A pack icon is optional.** A file named `pack.png`, of any size, is shown next to your pack in the pack manager. It replaces no picture of the game.
 
 You can keep your work in the category folders; the pack builder flattens them.
 
@@ -71,7 +72,7 @@ You can keep your work in the category folders; the pack builder flattens them.
 PackBuilder.exe <your folder> "<game>\Mods\my_pack" my_pack "My Pack"
 ```
 
-The builder copies every PNG under your folder into the pack's `Textures` folder, and writes `TexturePack.dll` and a `manifest.xml` if the pack has none. It stops if two files share a name or a size is wrong, and notes any name that is not in the catalog.
+The builder copies every PNG under your folder into the pack's `Textures` folder. It first deletes the PNG files already in that folder, so the pack holds exactly what is in your folder. It writes `TexturePack.dll` if the pack has none, and a `manifest.xml` if the pack has none. It stops without writing anything if two files share a name or a size is wrong, and notes any name that is not in the catalog.
 
 Open `manifest.xml` and fill in the name, author and description. Two lines must stay as they are:
 
@@ -88,4 +89,4 @@ The game only loads a mod that has code, so every pack carries `TexturePack.dll`
 
 ## 4. Try it
 
-Enable **Texture Packs** and your pack in the Mods menu and restart. The game's log (`Player.log`) has a line for each scene, with the pictures that were replaced and any that were skipped and why.
+Enable **Texture Packs** and your pack in the Mods menu and restart. To change the order of several packs, or to switch one off, use the [pack manager](index.md#using-packs). The game's log (`Player.log`) has a `[TexturePacks]` line that lists each pack with the number of pictures used, covered and skipped. Every skipped picture has its own warning that says why. When a scene loads, another line lists the scene pictures that were replaced. The pack manager shows the same numbers.

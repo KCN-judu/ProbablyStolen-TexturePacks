@@ -1,0 +1,13 @@
+{
+  "title": "Texture Packs",
+  "summary": "Texture packs are small mods that hold pictures. Texture Packs puts them in place of the game's own, in the order you choose.",
+  "locales": [
+    "zh_CN"
+  ],
+  "order": [
+    "index.md",
+    "making-a-pack.md",
+    "how-it-works.md",
+    "building.md"
+  ]
+}
