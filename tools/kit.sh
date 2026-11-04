@@ -10,6 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 FW=/c/Windows/Microsoft.NET/Framework64/v4.0.30319
 CSC="${CSC:-$FW/csc.exe}"
+# The kit carries the empty TexturePack.dll that build.sh produces.
 [ -f out/texture_pack_template/TexturePack.dll ] || ./build.sh >/dev/null
 
 # The .NET Framework csc reads "/" as an option prefix and fails on long paths: work in a short folder.
@@ -23,6 +24,8 @@ cp tools/Catalog/Catalog.cs tools/PackBuilder/PackBuilder.cs src/PackIds.Pure.cs
   "$CSC" -nologo -optimize+ -out:PackBuilder.exe PackBuilder.cs PackIds.Pure.cs
 )
 
+# Layout of the kit: catalog.tsv, PackBuilder.exe and TexturePack.dll at the top, placeholders/ from Catalog.exe,
+# export/ with the Python script, and the pack guide as README.md.
 KIT=out/texture_pack_kit
 rm -rf "$KIT" && mkdir -p "$KIT/export"
 ( cd "$WORK" && ./Catalog.exe "$(cygpath -w "$OLDPWD/tools/Catalog/inventory.json")" "$(cygpath -w "$OLDPWD/catalog.tsv")" \

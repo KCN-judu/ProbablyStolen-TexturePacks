@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using TexturePacks;
 
+// Example-based checks of the pure modules, one line per case; tests/run.sh prints only the failures. The examples
+// are the documented cases (the file names in PackKey, the saved line in PackOrder). DiffTest covers the same code
+// on generated inputs.
 static class PureTest
 {
     static int failed;

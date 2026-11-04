@@ -10,6 +10,8 @@ namespace SpriteProbe
     //   [SpriteProbe] seen <texture> <w>x<h> | <sprite> | <Image|SpriteRenderer> | <node path>
     // Polling enabled components four times a second catches panels, button hover and press states (which swap
     // Image.overrideSprite) and sprite animation frames that stay up for a moment.
+    // The mod's entry point. It keeps a hidden object with the Probe component across scenes and adds a debug-menu
+    // entry that logs a summary. Not part of the released mod; build it with tools/SpriteProbe/build.sh.
     public sealed class ProbeMod : IMod
     {
         internal const string Tag = "[SpriteProbe] ";
@@ -45,6 +47,8 @@ namespace SpriteProbe
         }
     }
 
+    // Polls, instead of patching the game's UI code, so it sees every sprite however it was set. It keeps only
+    // names (strings), never the sprites, images or nodes, so it holds nothing of the store between scenes.
     public sealed class Probe : MonoBehaviour
     {
         static readonly HashSet<string> seen = new HashSet<string>();
@@ -73,6 +77,7 @@ namespace SpriteProbe
             }
         }
 
+        // Logs a sprite the first time its texture and name are seen. Sprites without a texture are still logged.
         static void Note(Sprite s, string kind, Transform at)
         {
             if (s == null) return;
@@ -83,6 +88,7 @@ namespace SpriteProbe
             Debug.Log(ProbeMod.Tag + "seen " + tex + " | " + s.name + " | " + kind + " | " + PathOf(at));
         }
 
+        // The node's path from the root, capped at 30 levels in case of a loop.
         static string PathOf(Transform t)
         {
             var parts = new List<string>();

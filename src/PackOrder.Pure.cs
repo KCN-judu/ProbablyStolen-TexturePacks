@@ -10,6 +10,8 @@ namespace TexturePacks
     // The mark is always written, so an id may start with "-" or "+" itself; "%" and ";" inside an id are written as
     // %25 and %3B. Lines from before the marks (a bare id is on) still read the same.
     // Packs that are not installed right now stay in the line, so a pack that comes back takes its old place.
+    // A pure file, tested by tests/PureTest.cs and tests/DiffTest.cs (the saved line is a stored format, so
+    // changing Parse or Format changes what existing players' config files mean).
     public sealed class PackState
     {
         public readonly string Id;
@@ -22,6 +24,7 @@ namespace TexturePacks
     {
         const char Separator = ';', On = '+', Off = '-', Escape = '%';
 
+        // Reads the saved line. Empty parts and repeated ids are dropped; the first occurrence of an id counts.
         public static List<PackState> Parse(string text)
         {
             var list = new List<PackState>();
@@ -37,6 +40,7 @@ namespace TexturePacks
             return list;
         }
 
+        // Writes the saved line; the reverse of Parse.
         public static string Format(IEnumerable<PackState> packs)
         {
             var sb = new StringBuilder();
@@ -49,6 +53,7 @@ namespace TexturePacks
             return sb.ToString();
         }
 
+        // ";" splits the line and "%" starts an escape, so those two are the only characters that need one.
         static string EscapeId(string id)
         {
             return id.Replace("%", "%25").Replace(";", "%3B");

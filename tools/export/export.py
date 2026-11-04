@@ -43,10 +43,12 @@ class Entry:
     name: str
 
     def target(self, out: Path) -> Path:
+        """Where the picture goes: the same category and group folders the placeholders use."""
         return out / self.category / self.group / self.file
 
 
 def _entry(row: Mapping[str, str]) -> Entry:
+    """Turns one catalog.tsv row (columns as written by tools/Catalog) into an Entry."""
     kind = KINDS.get(row["kind"])
     if kind is None:
         raise ValueError(f"unknown kind {row['kind']!r} for {row['file']}")
@@ -55,6 +57,7 @@ def _entry(row: Mapping[str, str]) -> Entry:
 
 
 def read_catalog(path: Path) -> tuple[Entry, ...]:
+    """Every row of catalog.tsv, in file order."""
     with path.open(encoding="utf-8", newline="") as f:
         return tuple(_entry(row) for row in csv.DictReader(f, delimiter="\t"))
 
@@ -76,6 +79,7 @@ def resource_pictures(data: Path) -> ResourceSprites:
 
 
 def picture(entry: Entry, scene: SceneTextures, sprites: ResourceSprites) -> Image | None:
+    """The game's picture for a catalog row, or None when this game version no longer has it."""
     match entry.kind:
         case "scene":
             texture = scene.get(entry.file)
@@ -92,6 +96,7 @@ STATUSES: Final[tuple[Status, ...]] = ("written", "kept", "missing", "wrong size
 
 
 def export_one(entry: Entry, out: Path, overwrite: bool, find: Callable[[Entry], Image | None]) -> Status:
+    """Writes one picture. A size that differs from the catalog is not written: a pack could not use it."""
     target = entry.target(out)
     if target.exists() and not overwrite:
         return "kept"
@@ -106,6 +111,7 @@ def export_one(entry: Entry, out: Path, overwrite: bool, find: Callable[[Entry],
 
 
 def export(entries: Sequence[Entry], data: Path, out: Path, overwrite: bool) -> Mapping[Entry, Status]:
+    """Exports every entry. A kind of picture is read from the game's files only when an entry needs it."""
     kinds = frozenset(e.kind for e in entries)
     scene: SceneTextures = scene_pictures(data) if "scene" in kinds else {}
     sprites: ResourceSprites = resource_pictures(data) if "resources" in kinds else {}
@@ -124,6 +130,7 @@ class Options:
 
 
 def parse(argv: Sequence[str]) -> Options:
+    """Reads the command line. The catalog defaults to the one next to this script, as in the creator kit."""
     here = Path(__file__).resolve().parent
     p = argparse.ArgumentParser(description="Export the game's pictures for texture-pack work.")
     p.add_argument("game", type=Path, help='the game folder, e.g. "...\\steamapps\\common\\Probably Stolen"')
@@ -137,6 +144,7 @@ def parse(argv: Sequence[str]) -> Options:
 
 
 def report(results: Mapping[Entry, Status], out: Path) -> str:
+    """One line of counts per status, then every picture that is missing or has the wrong size."""
     counts = Counter(results.values())
     problems = sorted(f"  {status}: {e.file}" for e, status in results.items() if status in ("missing", "wrong size"))
     summary = ", ".join(f"{counts[s]} {s}" for s in STATUSES if counts[s])
@@ -144,6 +152,7 @@ def report(results: Mapping[Entry, Status], out: Path) -> str:
 
 
 def main(argv: Sequence[str]) -> int:
+    """Exit code 0 when every picture was written or kept, 1 when some are missing, 2 without game data."""
     opts = parse(argv)
     if not (opts.data / next(iter(SCENE_FILES))).is_file():
         print(f"no game data in {opts.data}", file=sys.stderr)

@@ -12,6 +12,7 @@ WORK="${TEMP:-/tmp}/tp_tests"
 rm -rf "${WORK:?}" && mkdir -p "$WORK"
 cp tests/PureTest.cs tests/DiffTest.cs tests/ScanTest.cs src/*.Pure.cs "$WORK/"
 
+# Every pure module goes into both test programs, so a new .Pure.cs file is tested without editing this script.
 pure=()
 for f in src/*.Pure.cs; do pure+=("$(basename "$f")"); done
 ( cd "$WORK" && "$CSC" -nologo -out:PureTest.exe PureTest.cs "${pure[@]}" >/dev/null && ./PureTest.exe | grep -v '^ok' )

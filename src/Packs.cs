@@ -28,14 +28,19 @@ namespace TexturePacks
             public int Skipped;             // unknown name or wrong size
         }
 
+        // One pack's file for one picture, kept while the candidates for it are compared.
         sealed class Source { public PackKey Key; public Texture2D Texture; public Pack Pack; }
 
         public const string IconName = "pack";
 
+        // The replacements, by the game's original Sprite. The sprites in it were created by this mod; Clear moves
+        // them to retired. Nothing here is a store object: the keys are sprites of the game's atlases, and Clear
+        // empties all of it when the mod is disabled.
         static readonly Dictionary<Sprite, Sprite> byOriginal = new Dictionary<Sprite, Sprite>();
         static readonly List<Sprite> retired = new List<Sprite>();
         static readonly List<Pack> installed = new List<Pack>();
 
+        // False until the first Rebuild, and again after Clear: the patches then pass the game's sprites through.
         public static bool Ready { get; private set; }
 
         // Every installed pack, switched on or not, in the Mods menu's order.
@@ -46,12 +51,17 @@ namespace TexturePacks
         // While set, the game's loaders return the originals (see the patches in TexturePacksMod).
         public static int Bypass;
 
+        // Called by the postfix on every sprite the game loads, so it is one dictionary lookup and nothing else.
         public static Sprite Replace(Sprite original)
         {
             Sprite s;
             return original != null && Bypass == 0 && byOriginal.TryGetValue(original, out s) && s != null ? s : original;
         }
 
+        // Reads every enabled pack again and decides, picture by picture, what replaces what. Runs at start-up (as
+        // each pack's assets finish loading), after Apply, and when the mod is enabled from the Mods menu.
+        // Bypass is raised while the originals are looked up: Original() goes through the patched loaders and
+        // must get the game's sprite, not a replacement from an earlier run.
         public static void Rebuild(string modId)
         {
             Clear();
@@ -109,12 +119,15 @@ namespace TexturePacks
             ApplyToRenderHandler();
         }
 
+        // One pack's counts for the Player.log line written by Rebuild.
         static string Summary(Pack p)
         {
             return p.Id + (Settings.IsEnabled(p.Id) ? "" : " off") + " (" + p.Used + " used" +
                 (p.Covered > 0 ? ", " + p.Covered + " covered" : "") + (p.Skipped > 0 ? ", " + p.Skipped + " skipped" : "") + ")";
         }
 
+        // Reads the manifest and counts the pictures of a pack whose names the mod understands. A texture named
+        // "pack" is the pack's icon in the manager, not a replacement (IconName).
         static Pack Describe(LoadedMod mod)
         {
             var m = mod.Manifest;
@@ -144,6 +157,7 @@ namespace TexturePacks
             Ready = false;
         }
 
+        // Called after a scene load (SceneTextures.OnSceneLoaded), when sprites retired by Clear can no longer be shown.
         public static void DestroyRetired()
         {
             foreach (var s in retired) if (s != null) UnityEngine.Object.Destroy(s);
@@ -158,6 +172,7 @@ namespace TexturePacks
             return original != null && SameSize(src.Texture, original);
         }
 
+        // The reason a file was rejected, for the warning in Player.log.
         static string Problem(Source src, Sprite original)
         {
             if (src.Key.IsSceneTexture || original != null)
@@ -175,6 +190,8 @@ namespace TexturePacks
             return texture.width == Mathf.RoundToInt(r.width) && texture.height == Mathf.RoundToInt(r.height);
         }
 
+        // The game's own sprite for a key, or null when there is none. The loaders can throw for a name that is not
+        // in the atlas, and a pack may name anything, so every failure means "no such sprite".
         static Sprite Original(PackKey key)
         {
             try
@@ -199,6 +216,7 @@ namespace TexturePacks
             return s;
         }
 
+        // One warning per pack and picture, so a rebuild does not repeat it.
         static readonly HashSet<string> warned = new HashSet<string>();
         static void Warn(Source src, string why)
         {
@@ -211,6 +229,9 @@ namespace TexturePacks
         static readonly Dictionary<FieldInfo, Sprite> fieldOriginals = new Dictionary<FieldInfo, Sprite>();
         static RenderHandler fieldsOf;
 
+        // Puts the replacements into the Sprite fields of RenderHandler, found by reflection because there are many
+        // of them. The first value seen in each field is the original (kept in fieldOriginals), so a later apply,
+        // or OnDisable, can swap or restore it. A new RenderHandler instance (a new scene) starts the table again.
         public static void ApplyToRenderHandler()
         {
             var handler = UnityEngine.Object.FindObjectOfType<RenderHandler>();

@@ -14,15 +14,21 @@ namespace TexturePacks
     // Sizes must match exactly; DXT textures are compressed at runtime to match, crunched ones are skipped.
     static class SceneTextures
     {
+        // The winning file for one scene texture. Counted: the pack's Used count has gone up for it already, so
+        // loading the scene again does not count it twice.
         sealed class Source { public PackKey Key; public Texture2D Texture; public Packs.Pack Pack; public bool Counted; }
 
         static readonly Dictionary<string, Source> sources = new Dictionary<string, Source>();
+        // Copies of the game's pixels, by the texture they were taken from, to put back in Clear. Textures of a
+        // scene that was left are destroyed by Unity; Forget drops their entries. Clear (called from OnDisable
+        // through Packs.Clear) empties it, so nothing stays after the mod is disabled.
         static readonly Dictionary<Texture2D, Texture2D> backups = new Dictionary<Texture2D, Texture2D>();
         static readonly HashSet<string> warned = new HashSet<string>();
         static bool hooked;
 
         public static int Count { get { return sources.Count; } }
 
+        // Subscribed while the mod is enabled; Unhook removes it so the mod leaves no delegate behind.
         public static void Hook()
         {
             if (hooked) return;
@@ -63,6 +69,8 @@ namespace TexturePacks
             catch (Exception e) { Debug.LogWarning(TexturePacksMod.Tag + "could not replace scene textures: " + e); }
         }
 
+        // Copies the pack's pixels into every loaded texture with a matching name and size. Run after every scene
+        // load and after Packs.Rebuild. A texture already in backups has been replaced; the others are replaced now.
         public static void Apply()
         {
             Forget();
@@ -97,6 +105,9 @@ namespace TexturePacks
             }
         }
 
+        // Replaces one texture on the GPU, keeping the original aside. A DXT texture is staged as RGBA32 and
+        // compressed, because Graphics.CopyTexture needs the same format and mip count on both sides.
+        // Returns false, with one warning per texture, when the texture cannot be replaced.
         static bool Write(Texture2D target, Source src)
         {
             var png = src.Texture;

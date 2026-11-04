@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using TexturePacks;
 
+// The reference models below are written the plain way (split and join, linear scans), not the way the mod's code
+// is written, so a bug has to appear in both to go unnoticed.
 static class DiffTest
 {
     const int Rounds = 20000;

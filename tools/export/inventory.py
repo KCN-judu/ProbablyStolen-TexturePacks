@@ -65,17 +65,20 @@ class SceneFile:
 
 
 def pixels(image: Image) -> Pixels:
+    """Whether the picture is blank, and the share of its area that is opaque, from the alpha histogram."""
     counts: Sequence[int] = image.convert("RGBA").getchannel("A").histogram()
     return Pixels(blank=max(i for i, n in enumerate(counts) if n) <= BLANK_ALPHA,
                   coverage=round(sum(counts[OPAQUE_ALPHA:]) / max(1, image.width * image.height), 3))
 
 
 def sprite_facts(r: ResourceSprite) -> SpriteFacts:
+    """Name, size and blankness of one Resources sprite."""
     return SpriteFacts(name=r.sprite.m_Name, w=round(r.sprite.m_Rect.width), h=round(r.sprite.m_Rect.height),
                        empty=pixels(r.sprite.image).blank)
 
 
 def atlases(sprites: Iterable[ResourceSprite]) -> tuple[Atlas, ...]:
+    """The sprites grouped by Resources path, sorted so the inventory file does not change between runs."""
     ordered = sorted(sprites, key=lambda r: (r.path, r.sprite.m_Name))
     return tuple(Atlas(path, tuple(sprite_facts(r) for r in group)) for path, group in groupby(ordered, key=lambda r: r.path))
 
@@ -87,6 +90,7 @@ def resource_texture_keys(sprites: Iterable[ResourceSprite]) -> frozenset[str]:
 
 
 def texture_facts(t: Texture, resources: frozenset[str]) -> TextureFacts:
+    """Facts of one scene texture; dup marks one that is really a Resources atlas, listed under resources."""
     measured = 0 < max(t.m_Width, t.m_Height) <= LARGEST_SHEET and min(t.m_Width, t.m_Height) > 0
     p = pixels(t.image) if measured else None
     return TextureFacts(name=t.m_Name, w=t.m_Width, h=t.m_Height, empty=p.blank if p else False,
@@ -94,6 +98,7 @@ def texture_facts(t: Texture, resources: frozenset[str]) -> TextureFacts:
 
 
 def inventory(data: Path) -> Mapping[str, object]:
+    """The whole inventory as plain data, ready for json.dumps: {"resources": [...], "scenes": [...]}."""
     # The scene files are loaded with Resources so that sprites can reach atlases stored in them.
     sprites = resource_sprites(load(data / f for f in (*RESOURCE_FILES, *SCENE_FILES)))
     resources = resource_texture_keys(sprites)
@@ -103,6 +108,7 @@ def inventory(data: Path) -> Mapping[str, object]:
 
 
 def main(argv: Sequence[str]) -> int:
+    """Writes the inventory file. Needed only after a game update, to refresh the catalog."""
     if len(argv) != 2:
         print(__doc__, file=sys.stderr)
         return 2

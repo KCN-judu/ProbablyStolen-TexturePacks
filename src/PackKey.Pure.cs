@@ -1,9 +1,10 @@
 namespace TexturePacks
 {
+    // A pure file (no Unity types): the file-name rules are tested headless by tests/PureTest.cs.
     // The name of a texture in a pack's Textures folder says what it replaces. The game only reads the top of that
     // folder, so everything is spelled in the file name:
-    //   Items~items_tool@wrench.png       sprite "wrench" in the Resources atlas Items/items_tool ("~" for "/")
-    //   Backgrounds~space_nebula.png      the single Resources sprite at Backgrounds/space_nebula
+    //   items~items_tool2@blender.png     sprite "blender" in the Resources atlas items/items_tool2 ("~" for "/")
+    //   window~machinery~bevel_frame.png  the single Resources sprite at window/machinery/bevel_frame
     //   store_mid.960x540.png             the whole scene texture "store_mid" of that size
     // Scene textures carry their size because several share a name ("wall" is 960x540 and 640x360).
     public sealed class PackKey
@@ -44,7 +45,7 @@ namespace TexturePacks
             return new PackKey(path.Replace(PathSeparator, '/'), sprite, 0, 0);
         }
 
-        // "960x540": two positive whole numbers.
+        // "960x540": two positive whole numbers of at most five digits (so the int cannot overflow).
         static bool ParseSize(string s, out int w, out int h)
         {
             w = h = 0;
@@ -65,6 +66,8 @@ namespace TexturePacks
             return true;
         }
 
+        // The key a scene texture is looked up by: the game's texture name and its pixel size
+        // (SceneTextures.Apply asks for it with the name and size of each texture in memory).
         public static string SceneId(string texture, int width, int height)
         {
             return texture + SizeSeparator + width + "x" + height;

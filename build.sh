@@ -8,6 +8,8 @@ M="$GAME/Probably Stolen_Data/Managed"
 CSC="${CSC:-/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe}"
 mkdir -p out/texture_packs
 
+# Reference only the game's assemblies that exist; the compiler runs with -nostdlib so the mod links against the
+# game's own mscorlib and netstandard, as the game does at run time.
 refs=()
 for r in mscorlib netstandard System System.Core Assembly-CSharp 0Harmony UnityEngine UnityEngine.CoreModule \
          UnityEngine.TextRenderingModule UnityEngine.UI UnityEngine.UIModule; do
@@ -25,6 +27,7 @@ for f in src/*.cs; do srcs+=("src\\$(basename "$f")"); done
   "${refs[@]}" '-out:TexturePacks.dll' "${srcs[@]}" )
 cp "$WORK/TexturePacks.dll" out/texture_packs/
 
+# What the game reads next to the DLL: manifest, cover and the in-game text (one csv per language).
 cp manifest.xml out/texture_packs/
 [ -f preview.png ] && cp preview.png out/texture_packs/
 mkdir -p out/texture_packs/Localization

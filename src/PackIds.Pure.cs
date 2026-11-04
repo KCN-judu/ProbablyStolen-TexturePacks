@@ -10,6 +10,7 @@ namespace TexturePacks
         public const int MaxLength = 64;
         public const string Fallback = "my_texture_pack";
 
+        // Tested by tests/PureTest.cs and tests/DiffTest.cs.
         public static bool IsAllowedChar(char c)
         {
             return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.';

@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+// Needs the game's Assembly-CSharp.dll, because ModScanner is part of it; the mod's DLLs are loaded without
+// running them. Exit code 0 means no capability, no hard flag and nothing refused, which is what a mod needs to
+// load without asking the player for permission.
 static class ScanTest
 {
     static string managed;

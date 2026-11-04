@@ -81,10 +81,12 @@ def data_folder(game: Path) -> Path:
 
 
 def load(files: Iterable[Path]) -> Environment:
+    """Loads Unity files together, so that objects in one can point into another."""
     return cast(Environment, UnityPy.load(*(str(f) for f in files)))
 
 
 def of_type(objects: Iterable[Reader], type_name: str) -> Iterator[Reader]:
+    """The objects of one Unity type, such as "Texture2D" or "Sprite"."""
     return (o for o in objects if o.type.name == type_name)
 
 
@@ -102,6 +104,7 @@ def size_key(name: str, width: int, height: int) -> str:
 
 
 def texture_key(t: Texture) -> str:
+    """The pack name of a texture, without ".png"; the same rule as PackKey.SceneId in the mod."""
     return size_key(t.m_Name, t.m_Width, t.m_Height)
 
 

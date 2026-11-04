@@ -14,8 +14,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 
+// Run by tools/kit.sh with the inventory from tools/export/inventory.py. The categories are decided here, by name
+// patterns checked against what the inventory says (size, how much of a texture is opaque); the inventory holds
+// only facts. After a game update, a new picture falls into "ui" (in-game or main-menu) unless a rule claims it.
 static class Catalog
 {
+    // One catalog row; written as one line of catalog.tsv, which PackBuilder and tools/export/export.py read.
     sealed class Entry
     {
         public string Key, Kind, Category, Group, Source, Name;
@@ -96,6 +100,7 @@ static class Catalog
     static readonly Regex Clothing = new Regex(@"^(male|female|scav(male|female))[A-Z]");
     static readonly Regex Bodies = new Regex(@"^((male|female)(upper|lower)|shot_animation|body$|one_hand)", I);
 
+    // Category and group of a Resources atlas, from its path; null leaves the atlas out of the catalog.
     static string[] ResourceCategory(string path)
     {
         if (path.StartsWith("window/")) return new[] { "ui", "window-elements" };
@@ -104,6 +109,9 @@ static class Catalog
         return null;
     }
 
+    // Category and group of a scene texture, or null to leave it out. The order of the tests matters: the first
+    // rule that matches decides, so the specific groups come before the "ui" fallback at the end. "menu" is the
+    // main menu scene file, the other is the shop; the shop-only groups are not tried on menu textures.
     static string[] SceneCategory(string name, int w, int h, bool menu, double coverage)
     {
         string l = name.ToLowerInvariant(), key = name + "." + w + "x" + h;
@@ -130,6 +138,7 @@ static class Catalog
     }
 
     // ------------------------------------------------------------------ main
+    // Reads the inventory, writes catalog.tsv sorted by category, group and name, and prints the count of each group.
     static int Main(string[] a)
     {
         if (a.Length < 2) { Console.Error.WriteLine("usage: Catalog.exe <inventory.json> <catalog.tsv> [placeholder folder]"); return 2; }
@@ -192,6 +201,7 @@ static class Catalog
         return 0;
     }
 
+    // Reads an optional boolean field of an inventory record; absent means false.
     static bool Flag(Dictionary<string, object> d, string k) { object v; return d.TryGetValue(k, out v) && v is bool && (bool)v; }
     static int Int(Dictionary<string, object> d, string k) { return Convert.ToInt32(d[k]); }
 

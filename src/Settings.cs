@@ -12,6 +12,8 @@ namespace TexturePacks
         static ModConfig config;
         static ConfigEntry<string> order;
 
+        // Defines the config entry. Without it the mod still works, every pack on, but the settings button and the
+        // manager are not available.
         public static void Define(string modId)
         {
             if (order != null) return;
@@ -32,6 +34,7 @@ namespace TexturePacks
             return PackOrder.Merge(PackOrder.Parse(Saved), installed);
         }
 
+        // Writes the order to the mod's config file at once.
         public static void Save(IEnumerable<PackState> packs)
         {
             if (order == null) return;
@@ -43,11 +46,13 @@ namespace TexturePacks
             catch (Exception e) { Debug.LogWarning(TexturePacksMod.Tag + "could not save the pack order: " + e.Message); }
         }
 
+        // The ids to apply, lowest priority first (PackOrder.ApplyOrder).
         public static List<string> ApplyOrder(IList<string> installed)
         {
             return PackOrder.ApplyOrder(Load(installed), new HashSet<string>(installed));
         }
 
+        // The saved switch of one pack: what was last applied, not the manager's draft.
         public static bool IsEnabled(string id)
         {
             foreach (var p in PackOrder.Parse(Saved)) if (p.Id == id) return p.Enabled;

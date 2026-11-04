@@ -15,6 +15,8 @@ namespace TexturePacks
     // game's settings window.
     public sealed class TexturePacksMod : IMod
     {
+        // The game's loader calls Init, OnEnable and OnDisable. Everything patched or subscribed in OnEnable is
+        // undone in OnDisable, so disabling the mod in the Mods menu restores the game's pictures.
         public const string ModId = "texture_packs";
         internal const string Tag = "[TexturePacks] ";
         const string HarmonyId = "mod." + ModId;
@@ -63,6 +65,8 @@ namespace TexturePacks
         const System.Reflection.BindingFlags Any = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static |
             System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
 
+        // A missing or unpatchable method is logged and skipped: a game update that renames one method must only
+        // cost the part that needs it, not the whole mod.
         static void Patch(string label, System.Reflection.MethodInfo target, string prefix, string postfix, string finalizer)
         {
             try
@@ -78,6 +82,7 @@ namespace TexturePacks
             return name == null ? null : new HarmonyMethod(typeof(TexturePacksMod).GetMethod(name, Any));
         }
 
+        // The entry for every re-read of the packs; a failure is logged and never thrown into the game's code.
         internal static void Rebuild()
         {
             try { Packs.Rebuild(modId); }
@@ -105,6 +110,8 @@ namespace TexturePacks
             return false;
         }
 
+        // GameItem.BuildShapeFromSprite reads the item sprite's alpha to decide which grid cells it takes. Bypass
+        // makes the loaders return the originals for its duration; the finalizer lowers it even if the game throws.
         static void BypassPrefix() { Packs.Bypass++; }
         static void BypassFinalizer() { Packs.Bypass--; }
 
@@ -115,6 +122,7 @@ namespace TexturePacks
             Rebuild();
         }
 
+        // RenderHandler fills its window sprite fields in Awake, which can run after Rebuild: apply again.
         static void RenderHandlerAwakePostfix()
         {
             if (!Packs.Ready) return;

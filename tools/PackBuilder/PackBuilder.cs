@@ -9,8 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+// Built by tools/kit.sh together with src/PackIds.Pure.cs, which supplies the mod-id rules the game applies, so the
+// builder never writes an id the game would refuse. It ships in the creator kit next to catalog.tsv and
+// TexturePack.dll, which it looks for in its own folder.
 static class PackBuilder
 {
+    // Checks everything first and writes nothing if any file is wrong, so a failed build never leaves a half pack.
+    // A file the catalog does not know is only a note: the game ignores unknown names, but a pack may keep other PNGs.
     static int Main(string[] a)
     {
         if (a.Length < 2)
@@ -86,6 +91,7 @@ static class PackBuilder
         return 0;
     }
 
+    // The path of a file relative to the source folder, for messages.
     static string Rel(string root, string path) { return path.Substring(root.Length).TrimStart('\\', '/'); }
 
     // catalog.tsv: file, kind, category, group, width, height, ...
@@ -115,6 +121,8 @@ static class PackBuilder
     }
 
 
+    // The manifest of a new pack. The prerequisite on texture_packs is what makes the mod load the pack, and
+    // 0.46D is the game version the mod lists in its own manifest.xml.
     static string Manifest(string id, string name)
     {
         name = System.Security.SecurityElement.Escape(name);

@@ -6,6 +6,7 @@ cd "$(dirname "$0")"
 GAME="${GAME:-/d/SteamLibrary/steamapps/common/Probably Stolen}"
 M="$GAME/Probably Stolen_Data/Managed"
 CSC="${CSC:-/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe}"
+# Written next to the mod's own build output (out/ is ignored by git).
 OUT=../../out/sprite_probe
 mkdir -p "$OUT"
 refs=()
