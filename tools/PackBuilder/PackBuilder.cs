@@ -21,6 +21,12 @@ static class PackBuilder
         string source = Path.GetFullPath(a[0]), pack = Path.GetFullPath(a[1]);
         string here = AppDomain.CurrentDomain.BaseDirectory;
         if (!Directory.Exists(source)) { Console.Error.WriteLine("source folder not found: " + source); return 2; }
+        if (a.Length > 2 && !TexturePacks.PackIds.IsValid(a[2]))
+        {
+            Console.Error.WriteLine("'" + a[2] + "' is not a mod id the game accepts: 1 to " + TexturePacks.PackIds.MaxLength +
+                " ASCII letters, digits, '_', '-' and '.', not starting with '.'");
+            return 2;
+        }
 
         var catalog = ReadCatalog(Path.Combine(here, "catalog.tsv"));
         var files = Directory.GetFiles(source, "*.png", SearchOption.AllDirectories);
@@ -71,7 +77,7 @@ static class PackBuilder
         string manifest = Path.Combine(pack, "manifest.xml");
         if (!File.Exists(manifest))
         {
-            string id = a.Length > 2 ? a[2] : SafeId(Path.GetFileName(pack));
+            string id = a.Length > 2 ? a[2] : TexturePacks.PackIds.FromName(Path.GetFileName(pack));
             string title = a.Length > 3 ? a[3] : Path.GetFileName(pack);
             File.WriteAllText(manifest, Manifest(id, title), new UTF8Encoding(false));
             Console.WriteLine("wrote manifest.xml with the id '" + id + "'; edit the name, author and description");
@@ -108,13 +114,6 @@ static class PackBuilder
         return true;
     }
 
-    // Mod ids allow letters, digits, '_', '-' and '.'.
-    static string SafeId(string s)
-    {
-        var sb = new StringBuilder();
-        foreach (char c in s.ToLowerInvariant()) sb.Append(char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '.' ? c : '_');
-        return sb.Length > 0 ? sb.ToString() : "my_texture_pack";
-    }
 
     static string Manifest(string id, string name)
     {

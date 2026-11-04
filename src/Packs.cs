@@ -65,39 +65,38 @@ namespace TexturePacks
                 installed.Add(Describe(mod));
             }
 
-            // Lowest priority first, so each pack overwrites what the packs below it chose.
-            var winners = new Dictionary<string, Source>();
-            foreach (var id in Settings.ApplyOrder(installed.Select(p => p.Id).ToList()))
+            // Every switched-on pack's file for each picture, highest priority first.
+            var candidates = new Dictionary<string, List<Source>>();
+            var order = Settings.ApplyOrder(installed.Select(p => p.Id).ToList());
+            order.Reverse();
+            foreach (var id in order)
             {
                 var pack = Find(id);
                 foreach (var t in mods[id].Textures)
                 {
                     var key = PackKey.Parse(t.Key);
                     if (key == null || t.Value == null) continue;
-                    Source below;
-                    if (winners.TryGetValue(key.Id, out below)) below.Pack.Covered++;
-                    winners[key.Id] = new Source { Key = key, Texture = t.Value, Pack = pack };
+                    List<Source> list;
+                    if (!candidates.TryGetValue(key.Id, out list)) candidates[key.Id] = list = new List<Source>();
+                    list.Add(new Source { Key = key, Texture = t.Value, Pack = pack });
                 }
             }
 
+            // Each candidate is checked against the game first; the highest usable one wins (see PackResolve).
             Bypass++;
             try
             {
-                foreach (var src in winners.Values)
+                foreach (var list in candidates.Values)
                 {
-                    if (src.Key.IsSceneTexture) { SceneTextures.Add(src.Key, src.Texture, src.Pack); continue; }
-                    var original = Original(src.Key);
-                    if (original == null) { src.Pack.Skipped++; Warn(src, "no such sprite in the game"); continue; }
-                    var made = Make(original, src.Texture);
-                    if (made == null)
-                    {
-                        src.Pack.Skipped++;
-                        Warn(src, "is " + src.Texture.width + "x" + src.Texture.height + ", the game's sprite is " +
-                            (int)original.rect.width + "x" + (int)original.rect.height);
-                        continue;
-                    }
-                    byOriginal[original] = made;
-                    src.Pack.Used++;
+                    var key = list[0].Key;
+                    Sprite original = key.IsSceneTexture ? null : Original(key);
+                    var r = PackResolve.Choose(list, src => Usable(src, original));
+                    foreach (var src in r.Covered) src.Pack.Covered++;
+                    foreach (var src in r.Rejected) { src.Pack.Skipped++; Warn(src, Problem(src, original)); }
+                    if (!r.HasWinner) continue;
+                    if (key.IsSceneTexture) { SceneTextures.Add(key, r.Winner.Texture, r.Winner.Pack); continue; }
+                    byOriginal[original] = Make(original, r.Winner.Texture);
+                    r.Winner.Pack.Used++;
                 }
             }
             finally { Bypass--; }
@@ -151,6 +150,31 @@ namespace TexturePacks
             retired.Clear();
         }
 
+        // A scene file names its own size; a sprite file must match the game's sprite. Which scene textures exist is
+        // only known once their scene loads, so that part is checked there (SceneTextures).
+        static bool Usable(Source src, Sprite original)
+        {
+            if (src.Key.IsSceneTexture) return src.Texture.width == src.Key.Width && src.Texture.height == src.Key.Height;
+            return original != null && SameSize(src.Texture, original);
+        }
+
+        static string Problem(Source src, Sprite original)
+        {
+            if (src.Key.IsSceneTexture || original != null)
+            {
+                int w = src.Key.IsSceneTexture ? src.Key.Width : Mathf.RoundToInt(original.rect.width);
+                int h = src.Key.IsSceneTexture ? src.Key.Height : Mathf.RoundToInt(original.rect.height);
+                return "is " + src.Texture.width + "x" + src.Texture.height + ", the game's picture is " + w + "x" + h;
+            }
+            return "no such sprite in the game";
+        }
+
+        static bool SameSize(Texture2D texture, Sprite original)
+        {
+            Rect r = original.rect;
+            return texture.width == Mathf.RoundToInt(r.width) && texture.height == Mathf.RoundToInt(r.height);
+        }
+
         static Sprite Original(PackKey key)
         {
             try
@@ -162,10 +186,10 @@ namespace TexturePacks
 
         // Same size as the original, and the original's pivot, pixels per unit and nine-slice border, so the game
         // lays out and slices it exactly as before. Item shapes are built from the originals in any case.
+        // Callers have checked the size (Usable).
         static Sprite Make(Sprite original, Texture2D texture)
         {
             Rect r = original.rect;
-            if (texture.width != Mathf.RoundToInt(r.width) || texture.height != Mathf.RoundToInt(r.height)) return null;
             texture.filterMode = original.texture != null ? original.texture.filterMode : FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Clamp;
             var pivot = new Vector2(original.pivot.x / r.width, original.pivot.y / r.height);

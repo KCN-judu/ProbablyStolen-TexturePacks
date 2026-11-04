@@ -33,32 +33,37 @@ static class PureTest
 
     static void Order()
     {
-        Check("parse and format round-trip", Ids(PackOrder.Parse("a;-b;c")) == "a;-b;c");
-        Check("blank parts, spaces and repeats are dropped", Ids(PackOrder.Parse(" a ;;- b;a;-")) == "a;-b");
+        Check("every pack is written with its mark", Ids(PackOrder.Parse("+a;-b;+c")) == "+a;-b;+c");
+        Check("lines from before the marks read the same", Ids(PackOrder.Parse("a;-b;c")) == "+a;-b;+c");
+        Check("an id may start with a mark itself", Ids(PackOrder.Parse("+-a;-+b")) == "+-a;-+b" &&
+            PackOrder.Parse("+-a;-+b")[0].Id == "-a" && PackOrder.Parse("+-a;-+b")[0].Enabled);
+        Check("';' and '%' inside an id are escaped", Ids(new[] { new PackState("a;b%", true) }) == "+a%3Bb%25" &&
+            PackOrder.Parse("+a%3Bb%25")[0].Id == "a;b%");
+        Check("blank parts and repeats are dropped", Ids(PackOrder.Parse(";;+a;;-a;+;-")) == "+a");
         Check("empty text is an empty order", PackOrder.Parse("").Count == 0 && PackOrder.Parse(null).Count == 0);
 
         var installed = new List<string> { "c", "new1", "a", "new2" };   // Mods-menu order
-        var merged = PackOrder.Merge(PackOrder.Parse("a;-b;c"), installed);
+        var merged = PackOrder.Merge(PackOrder.Parse("+a;-b;+c"), installed);
         Check("new packs go on top, switched on, in Mods-menu order; saved order kept below",
-            Ids(merged) == "new1;new2;a;-b;c");
+            Ids(merged) == "+new1;+new2;+a;-b;+c");
         Check("an uninstalled pack stays in the saved line", merged.Exists(p => p.Id == "b"));
-        Check("the manager shows installed packs only", Ids(PackOrder.Visible(merged, installed)) == "new1;new2;a;c");
+        Check("the manager shows installed packs only", Ids(PackOrder.Visible(merged, installed)) == "+new1;+new2;+a;+c");
 
         // Top wins: applied lowest first, switched-off and uninstalled packs left out.
-        var list = PackOrder.Parse("top;-off;gone;bottom");
+        var list = PackOrder.Parse("+top;-off;+gone;+bottom");
         var here = new HashSet<string> { "top", "off", "bottom" };
         Check("apply order is lowest priority first", Join(PackOrder.ApplyOrder(list, here)) == "bottom,top");
 
         // A move passes the next installed pack and steps over ones that are not installed.
-        Check("move down past the next installed pack", PackOrder.Move(list, "off", 1, here) && Ids(list) == "top;gone;bottom;-off");
-        Check("visible order after moving down", Ids(PackOrder.Visible(list, here)) == "top;bottom;-off");
-        Check("move back up", PackOrder.Move(list, "off", -1, here) && Ids(list) == "top;gone;-off;bottom");
-        Check("the top pack cannot move up", !PackOrder.Move(list, "top", -1, here) && Ids(list) == "top;gone;-off;bottom");
+        Check("move down past the next installed pack", PackOrder.Move(list, "off", 1, here) && Ids(list) == "+top;+gone;+bottom;-off");
+        Check("visible order after moving down", Ids(PackOrder.Visible(list, here)) == "+top;+bottom;-off");
+        Check("move back up", PackOrder.Move(list, "off", -1, here) && Ids(list) == "+top;+gone;-off;+bottom");
+        Check("the top pack cannot move up", !PackOrder.Move(list, "top", -1, here) && Ids(list) == "+top;+gone;-off;+bottom");
         Check("the bottom pack cannot move down", !PackOrder.Move(list, "bottom", 1, here));
         Check("an unknown pack does not move", !PackOrder.Move(list, "nope", 1, here));
         Check("moving to the top steps over an uninstalled pack",
             PackOrder.Move(list, "bottom", -1, here) && PackOrder.Move(list, "bottom", -1, here) &&
-            Ids(PackOrder.Visible(list, here)) == "bottom;top;-off");
+            Ids(PackOrder.Visible(list, here)) == "+bottom;+top;-off");
         Check("the top pack then wins", Join(PackOrder.ApplyOrder(list, here)) == "top,bottom");
     }
 

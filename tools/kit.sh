@@ -15,11 +15,12 @@ CSC="${CSC:-$FW/csc.exe}"
 # The .NET Framework csc reads "/" as an option prefix and fails on long paths: work in a short folder.
 WORK="${TEMP:-/tmp}/tp_kit"
 rm -rf "${WORK:?}" && mkdir -p "$WORK"
-cp tools/Catalog/Catalog.cs tools/PackBuilder/PackBuilder.cs "$WORK/"
+cp tools/Catalog/Catalog.cs tools/PackBuilder/PackBuilder.cs src/PackIds.Pure.cs "$WORK/"
 (
   cd "$WORK"
   "$CSC" -nologo -optimize+ -r:System.Drawing.dll -r:System.Web.Extensions.dll -out:Catalog.exe Catalog.cs
-  "$CSC" -nologo -optimize+ -out:PackBuilder.exe PackBuilder.cs
+  # The builder writes pack ids with the mod's own rules, so it never writes one the game refuses.
+  "$CSC" -nologo -optimize+ -out:PackBuilder.exe PackBuilder.cs PackIds.Pure.cs
 )
 
 KIT=out/texture_pack_kit

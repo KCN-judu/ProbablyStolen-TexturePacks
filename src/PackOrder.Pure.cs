@@ -6,7 +6,9 @@ namespace TexturePacks
     // The player's order of texture packs. The pack at the top wins: where two packs replace the same picture, the
     // one higher in the list is used. Each pack can be switched off without uninstalling it.
     //
-    // Saved as one line, top first, a "-" before a pack that is switched off:  hd_items;-old_ui;dark_shop
+    // Saved as one line, top first, each pack marked "+" (on) or "-" (off):  +hd_items;-old_ui;+dark_shop
+    // The mark is always written, so an id may start with "-" or "+" itself; "%" and ";" inside an id are written as
+    // %25 and %3B. Lines from before the marks (a bare id is on) still read the same.
     // Packs that are not installed right now stay in the line, so a pack that comes back takes its old place.
     public sealed class PackState
     {
@@ -18,19 +20,19 @@ namespace TexturePacks
 
     public static class PackOrder
     {
-        const char Separator = ';', Off = '-';
+        const char Separator = ';', On = '+', Off = '-', Escape = '%';
 
         public static List<PackState> Parse(string text)
         {
             var list = new List<PackState>();
             var seen = new HashSet<string>();
             if (string.IsNullOrEmpty(text)) return list;
-            foreach (var raw in text.Split(Separator))
+            foreach (var part in text.Split(Separator))
             {
-                string part = raw.Trim();
-                bool enabled = true;
-                if (part.Length > 0 && part[0] == Off) { enabled = false; part = part.Substring(1).Trim(); }
-                if (part.Length > 0 && seen.Add(part)) list.Add(new PackState(part, enabled));
+                if (part.Length == 0) continue;
+                bool enabled = part[0] != Off;
+                string id = Unescape(part[0] == On || part[0] == Off ? part.Substring(1) : part);
+                if (id.Length > 0 && seen.Add(id)) list.Add(new PackState(id, enabled));
             }
             return list;
         }
@@ -40,11 +42,40 @@ namespace TexturePacks
             var sb = new StringBuilder();
             foreach (var p in packs)
             {
+                if (string.IsNullOrEmpty(p.Id)) continue;
                 if (sb.Length > 0) sb.Append(Separator);
-                if (!p.Enabled) sb.Append(Off);
-                sb.Append(p.Id);
+                sb.Append(p.Enabled ? On : Off).Append(EscapeId(p.Id));
             }
             return sb.ToString();
+        }
+
+        static string EscapeId(string id)
+        {
+            return id.Replace("%", "%25").Replace(";", "%3B");
+        }
+
+        // %XX with two hex digits is a character; anything else is kept as written.
+        static string Unescape(string s)
+        {
+            if (s.IndexOf(Escape) < 0) return s;
+            var sb = new StringBuilder();
+            for (int i = 0; i < s.Length; i++)
+            {
+                int hi, lo;
+                if (s[i] == Escape && i + 2 < s.Length && Hex(s[i + 1], out hi) && Hex(s[i + 2], out lo))
+                {
+                    sb.Append((char)(hi * 16 + lo));
+                    i += 2;
+                }
+                else sb.Append(s[i]);
+            }
+            return sb.ToString();
+        }
+
+        static bool Hex(char c, out int v)
+        {
+            v = c >= '0' && c <= '9' ? c - '0' : c >= 'A' && c <= 'F' ? c - 'A' + 10 : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
+            return v >= 0;
         }
 
         // The saved order with the installed packs merged in. A newly installed pack goes on top, switched on; when

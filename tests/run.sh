@@ -10,11 +10,14 @@ M="$GAME/Probably Stolen_Data/Managed"
 # The .NET Framework csc reads "/" as an option prefix and fails on long paths: work in a short folder.
 WORK="${TEMP:-/tmp}/tp_tests"
 rm -rf "${WORK:?}" && mkdir -p "$WORK"
-cp tests/PureTest.cs tests/ScanTest.cs src/*.Pure.cs "$WORK/"
+cp tests/PureTest.cs tests/DiffTest.cs tests/ScanTest.cs src/*.Pure.cs "$WORK/"
 
 pure=()
 for f in src/*.Pure.cs; do pure+=("$(basename "$f")"); done
 ( cd "$WORK" && "$CSC" -nologo -out:PureTest.exe PureTest.cs "${pure[@]}" >/dev/null && ./PureTest.exe | grep -v '^ok' )
+# The same modules against plain reference models, on many generated inputs.
+echo "-- differential tests"
+( cd "$WORK" && "$CSC" -nologo -optimize+ -out:DiffTest.exe DiffTest.cs "${pure[@]}" >/dev/null && ./DiffTest.exe )
 
 if [ -f "$M/Assembly-CSharp.dll" ] && [ -f out/texture_packs/TexturePacks.dll ]; then
   refs=()
