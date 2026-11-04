@@ -6,6 +6,8 @@ A mod for *Probably Stolen* that replaces the game's pictures with the ones in t
 
 **Early access (0.1.0).** This mod is still being tested and things will change. Discussion during development: [Discord thread](https://discord.com/channels/1315752321975845004/1567431485391372339).
 
+Subscribe on the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3833785379), or copy the folder from a [release](https://github.com/KCN-judu/ProbablyStolen-TexturePacks/releases) into the game's `Mods` folder. Then enable the mod in the game's Mods menu and restart the game.
+
 Part of the [Probably Stolen mods collection](https://github.com/KCN-judu/ProbablyStolen-Mods).
 
 ## Making a pack
