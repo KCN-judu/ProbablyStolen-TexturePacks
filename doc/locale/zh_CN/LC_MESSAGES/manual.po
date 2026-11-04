@@ -478,8 +478,8 @@ msgid "![Texture Packs cover](../attachments/cover.png)"
 msgstr "![Texture Packs 封面](../attachments/cover.png)"
 
 #: manual/index.md:5
-msgid "[!NOTE] Texture Packs is a work in progress and not released yet. Things will change."
-msgstr "[!NOTE] Texture Packs 还在开发中，尚未发布，之后会有改动。"
+msgid "[!NOTE] Texture Packs is in early access (0.1.0): it is still being tested and things will change. Discussion during development: [Discord thread](https://discord.com/channels/1315752321975845004/1567431485391372339)."
+msgstr "[!NOTE] 材质包加载器处于抢先体验阶段（0.1.0）：仍在测试中，之后会有改动。开发期间的讨论区：[Discord 帖子](https://discord.com/channels/1315752321975845004/1567431485391372339)。"
 
 #: manual/index.md:8
 msgid "Texture Packs lets mods replace the game's pictures. A texture pack is a small mod that holds pictures. Texture Packs puts them in place of the game's own: items, windows and buttons, the shop and its fixtures, the customers and the new-game screens."
@@ -876,4 +876,3 @@ msgstr "在游戏里"
 #: manual/making-a-pack.md:160
 msgid "The picture takes effect only while the mod it names is enabled. If no enabled mod has the origin, or the mod has no such picture, or the size differs from the mod's picture, the picture is skipped. The pack manager counts it, and `Player.log` says why."
 msgstr "只有图所指的模组已启用时，这张图才会生效。没有已启用的模组带有这个来源，或者模组没有这张图，或者尺寸和模组的图不同，这张图就会被跳过。材质包管理器会统计数量，`Player.log` 会说明原因。"
-

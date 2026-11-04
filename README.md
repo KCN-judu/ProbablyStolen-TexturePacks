@@ -1,10 +1,10 @@
-# Texture Packs (WIP)
+# Texture Packs (early access)
 
 ![Texture Packs](preview.png)
 
 A mod for *Probably Stolen* that replaces the game's pictures with the ones in texture packs. A texture pack is a small mod that holds pictures. Texture Packs puts them in place of the game's own: items, windows, the shop and its fixtures, the customers and the new-game screens. A pack manager lists the installed packs in priority order. Each pack can be switched on or off, and the pack at the top wins where two replace the same picture. A pack can also replace the pictures that other mods add, such as the items of a gameplay mod, without any change to that mod.
 
-**Work in progress.** Not released yet. Things will change.
+**Early access (0.1.0).** This mod is still being tested and things will change. Discussion during development: [Discord thread](https://discord.com/channels/1315752321975845004/1567431485391372339).
 
 Part of the [Probably Stolen mods collection](https://github.com/KCN-judu/ProbablyStolen-Mods).
 

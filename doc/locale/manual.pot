@@ -478,7 +478,7 @@ msgid "![Texture Packs cover](../attachments/cover.png)"
 msgstr ""
 
 #: manual/index.md:5
-msgid "[!NOTE] Texture Packs is a work in progress and not released yet. Things will change."
+msgid "[!NOTE] Texture Packs is in early access (0.1.0): it is still being tested and things will change. Discussion during development: [Discord thread](https://discord.com/channels/1315752321975845004/1567431485391372339)."
 msgstr ""
 
 #: manual/index.md:8

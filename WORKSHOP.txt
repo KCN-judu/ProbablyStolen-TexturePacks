@@ -1,0 +1,81 @@
+[h1]Texture Packs[/h1]
+[b]Early access (0.1.0): this mod is still being tested and things will change.[/b] Discussion during development: [url=https://discord.com/channels/1315752321975845004/1567431485391372339]Discord thread[/url]
+
+Lets mods replace the game's pictures. A texture pack is a small mod that holds pictures and no code; Texture Packs puts them in place of the game's own.
+
+[h2]What's new in 0.1.0[/h2]
+[list]
+[*]First public release, for testing.
+[/list]
+
+[h2]What it does[/h2]
+[list]
+[*]Replaces [b]items, windows and buttons, the shop and its fixtures, the customers and the new-game screens[/b] with the pictures of an enabled pack.
+[*]Packs can also replace the [b]pictures that other mods add[/b] (items, papers). The mod does not have to know about your pack.
+[*]A [b]pack manager[/b] in the Mods menu lists packs in priority order and switches each on or off; the top pack wins where two replace the same picture.
+[*]Item shapes always come from the game's own pictures, so a pack never changes what fits where.
+[*]Needs no special permissions.
+[*]Built for game version 0.46D.
+[/list]
+
+[h2]Making a pack[/h2]
+[list]
+[*]The creator kit holds the catalog of every replaceable picture, a script that exports the game's pictures from your own copy, and a tool that builds and checks a pack. It holds no game art.
+[*]A preview draws the shop view with your pictures in place before you start the game.
+[*]The documentation goes through it step by step.
+[/list]
+
+[h2]Early access notes[/h2]
+[list]
+[*]Names, folders and tools may still change before 1.0. Packs made now may need small changes later.
+[*]Three pictures the game stores in a crunched format (the drag arrow, the magnifying glass and the UI bevel) cannot be replaced yet.
+[*]Please report problems and ideas in the Discord thread above, on GitHub or in the comments.
+[/list]
+
+[h2]Source and documentation[/h2]
+[list]
+[*][url=https://github.com/KCN-judu/ProbablyStolen-TexturePacks]Source code and documentation on GitHub[/url], Apache License 2.0
+[*][url=https://github.com/KCN-judu/ProbablyStolen-Mods]All mods by KCN-judu[/url]
+[/list]
+
+[hr][/hr]
+
+[h1]材质包加载器[/h1]
+[b]抢先体验（0.1.0）：本模组仍在测试中，之后会有改动。[/b]开发期间的讨论区：[url=https://discord.com/channels/1315752321975845004/1567431485391372339]Discord 帖子[/url]
+
+让模组替换游戏的图片。材质包是只含图片、不含代码的小模组，材质包加载器会把这些图片放到游戏原图的位置。
+
+[h2]0.1.0 新内容[/h2]
+[list]
+[*]首个公开版本，用于测试。
+[/list]
+
+[h2]功能[/h2]
+[list]
+[*]用已启用材质包里的图片替换[b]物品、窗口和按钮、店铺及其陈设、顾客和新游戏界面[/b]。
+[*]材质包也可以替换[b]其他模组添加的图片[/b]（物品、纸张），那个模组不需要做任何改动。
+[*]模组菜单里的[b]材质包管理器[/b]按优先级列出材质包，可以逐个开关；两个包替换同一张图时，排在上面的生效。
+[*]物品的形状始终取自游戏自己的图片，材质包不会改变物品占多少格。
+[*]不需要任何特殊权限。
+[*]适用于游戏版本 0.46D。
+[/list]
+
+[h2]制作材质包[/h2]
+[list]
+[*]创作者套件包含所有可替换图片的目录、从你自己的游戏中导出原图的脚本，以及打包并检查材质包的工具。套件里没有游戏美术资源。
+[*]预览工具可以在启动游戏之前，把你的图片放进店铺视图里看效果。
+[*]文档会一步一步讲解。
+[/list]
+
+[h2]抢先体验说明[/h2]
+[list]
+[*]在 1.0 之前，名称、文件夹和工具都可能调整，现在做的材质包以后可能需要小改。
+[*]游戏用压缩格式存放的三张图（拖拽箭头、放大镜和界面斜角）暂时无法替换。
+[*]欢迎在上面的 Discord 帖子、GitHub 或评论区反馈问题和想法。
+[/list]
+
+[h2]源码与文档[/h2]
+[list]
+[*][url=https://github.com/KCN-judu/ProbablyStolen-TexturePacks]GitHub 源码与文档[/url]，Apache License 2.0
+[*][url=https://github.com/KCN-judu/ProbablyStolen-Mods]KCN-judu 的全部模组[/url]
+[/list]

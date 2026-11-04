@@ -1,8 +1,8 @@
 # Changelog
 
-## WIP
+## 0.1.0 (early access)
 
-Not released.
+First public release, for testing. Discussion during development: https://discord.com/channels/1315752321975845004/1567431485391372339
 
 - Texture packs: mods that list Texture Packs as a prerequisite and carry `TexturePack.dll` and a `Textures` folder of PNG files.
 - Item and window pictures the game loads from its atlases are replaced sprite by sprite; pictures stored in the menu and shop scenes are replaced in place each time the scene loads. A picture must be exactly the size of the game's.

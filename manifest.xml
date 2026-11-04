@@ -3,7 +3,7 @@
   <ID>texture_packs</ID>
   <Name>Texture Packs</Name>
   <Author>KCN-judu</Author>
-  <ModVersion>WIP</ModVersion>
+  <ModVersion>0.1.0</ModVersion>
   <Description>Loads texture packs: mods that replace the game's pictures.</Description>
   <GameVersions>
     <Version>0.46D</Version>

@@ -3,7 +3,7 @@
 ![Texture Packs cover](../attachments/cover.png)
 
 > [!NOTE]
-> Texture Packs is a work in progress and not released yet. Things will change.
+> Texture Packs is in early access (0.1.0): it is still being tested and things will change. Discussion during development: [Discord thread](https://discord.com/channels/1315752321975845004/1567431485391372339).
 
 Texture Packs lets mods replace the game's pictures. A texture pack is a small mod that holds pictures. Texture Packs puts them in place of the game's own: items, windows and buttons, the shop and its fixtures, the customers and the new-game screens.
 
