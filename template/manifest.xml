@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Manifest>
+  <ID>my_texture_pack</ID>
+  <Name>My Texture Pack</Name>
+  <Author>Your name</Author>
+  <ModVersion>1.0.0</ModVersion>
+  <Description>A texture pack for the Texture Packs mod.</Description>
+  <GameVersions>
+    <Version>0.46D</Version>
+  </GameVersions>
+  <Prerequisites>
+    <Mod>texture_packs</Mod>
+  </Prerequisites>
+  <Assemblies>
+    <Assembly>TexturePack.dll</Assembly>
+  </Assemblies>
+  <Capabilities />
+</Manifest>

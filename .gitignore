@@ -1,0 +1,8 @@
+# Build output
+/out/
+build.log
+# Stray build artifacts at the repository root
+/*.dll
+# Python tool caches
+__pycache__/
+.mypy_cache/

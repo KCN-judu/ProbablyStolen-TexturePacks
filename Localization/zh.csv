@@ -1,0 +1,16 @@
+# Texture Packs - 简体中文 (zh)
+config_packs,材质包顺序
+config_packs_tip,已安装材质包的顺序和开关。请在材质包管理器中修改。
+manager_title,材质包
+manager_intro,两个材质包替换同一张图时，排在上面的生效。可以关闭或移动材质包，然后点应用。
+manager_empty,没有安装材质包。材质包是以 Texture Packs 为前置的 Mod，在 Mods 菜单中启用后重启游戏。
+manager_apply,应用
+manager_close,关闭
+manager_up,上移
+manager_down,下移
+manager_author,作者：{0}
+manager_pictures,{0} 张图
+manager_off,已关闭（{0} 张图）
+manager_used,生效 {0} / {1}
+manager_covered,{0} 张被上方的包覆盖
+manager_skipped,跳过 {0} 张

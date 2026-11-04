@@ -1,0 +1,16 @@
+# Texture Packs - English (en)
+config_packs,Pack order
+config_packs_tip,The order and on/off state of the installed texture packs. Edit it in the pack manager.
+manager_title,Texture Packs
+manager_intro,The pack at the top wins where two packs replace the same picture. Switch packs off or move them, then Apply.
+manager_empty,No texture packs are installed. A texture pack is a mod that lists Texture Packs as a prerequisite; enable it in the Mods menu and restart.
+manager_apply,Apply
+manager_close,Close
+manager_up,Up
+manager_down,Down
+manager_author,by {0}
+manager_pictures,{0} pictures
+manager_off,off ({0} pictures)
+manager_used,{0} of {1} in use
+manager_covered,{0} covered by packs above
+manager_skipped,{0} skipped
