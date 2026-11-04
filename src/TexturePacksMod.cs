@@ -11,6 +11,8 @@ namespace TexturePacks
     // original for its replacement. Item shapes come from the alpha of the item's sprite, so GameItem's shape
     // builder always sees the original: a pack changes how an item looks, never which cells it takes.
     // Textures stored in the scene files are replaced in place after every scene load (see SceneTextures).
+    // Pictures of other mods are replaced where those mods keep them: in LoadedMod.Sprites and PaperSprites, or through
+    // what a mod offers from code (see ExternalAssets); the shape of a mod's item is still built from its original.
     // The settings button of Texture Packs in the Mods menu opens the pack manager (see Manager) instead of the
     // game's settings window.
     public sealed class TexturePacksMod : IMod
@@ -39,6 +41,7 @@ namespace TexturePacks
                 Patch("RenderHandler.LoadFromFile", typeof(RenderHandler).GetMethod("LoadFromFile", Any), null, "SpritePostfix", null);
                 Patch("RenderHandler.Awake", typeof(RenderHandler).GetMethod("Awake", Any), null, "RenderHandlerAwakePostfix", null);
                 Patch("GameItem.BuildShapeFromSprite", typeof(GameItem).GetMethod("BuildShapeFromSprite", Any), "BypassPrefix", null, "BypassFinalizer");
+                Patch("GameItem.SetSpriteAndShapeFromMod", typeof(GameItem).GetMethod("SetSpriteAndShapeFromMod", Any), "ModShapePrefix", null, "ModShapeFinalizer");
                 Patch("ModConfigWindow.Open", typeof(ModConfigWindow).GetMethod("Open", Any), "SettingsPrefix", null, null);
             }
             Settings.Define(modId);
@@ -115,11 +118,23 @@ namespace TexturePacks
         static void BypassPrefix() { Packs.Bypass++; }
         static void BypassFinalizer() { Packs.Bypass--; }
 
-        // Only a pack's own assets can change what is replaced; other mods finishing are ignored.
+        // The shape of a mod's item comes from its sprite's alpha, read from LoadedMod.Sprites when the item is made.
+        // A pack may have replaced that entry, so the original goes back for the length of the call (ModSprites).
+        // `__state` carries what Resume needs; the finalizer runs even if the game throws.
+        static void ModShapePrefix(string modId, string spriteKey, out object __state)
+        {
+            __state = ModSprites.Suspend(modId, spriteKey);
+        }
+
+        static void ModShapeFinalizer(object __state) { ModSprites.Resume(__state); }
+
+        // What a finished mod can change: a pack's pictures, the pictures a provider offers (ProviderBridge), or the
+        // pictures of a mod that a pack has files for (they exist from now on). Other mods finishing are ignored.
         static void OnModAssetsLoaded(LoadedMod mod)
         {
-            if (mod == null || mod.Manifest == null || mod.Manifest.Prerequisites == null || !mod.Manifest.Prerequisites.Contains(modId)) return;
-            Rebuild();
+            if (mod == null || mod.Manifest == null) return;
+            bool isPack = mod.Manifest.Prerequisites != null && mod.Manifest.Prerequisites.Contains(modId);
+            if (isPack || ProviderBridge.Publishes(mod.Manifest.ID) || Packs.Refers(mod)) Rebuild();
         }
 
         // RenderHandler fills its window sprite fields in Awake, which can run after Rebuild: apply again.

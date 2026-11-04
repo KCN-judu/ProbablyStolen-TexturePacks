@@ -1,9 +1,10 @@
 // Differential tests: each pure module (src/*.Pure.cs) against a plain reference model, on many inputs drawn with a
 // fixed seed from alphabets full of the characters that sit on the boundaries ('-', '+', ';', '%', '.', non-ASCII).
-//   csc -out:DiffTest.exe tests\DiffTest.cs src\PackIds.Pure.cs src\PackOrder.Pure.cs src\PackResolve.Pure.cs
+//   csc -out:DiffTest.exe tests\DiffTest.cs src\PackIds.Pure.cs src\AssetId.Pure.cs src\AssetIdCodec.Pure.cs src\Origins.Pure.cs src\Swapper.Pure.cs src\PackOrder.Pure.cs src\PackResolve.Pure.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TexturePacks;
 
 // The reference models below are written the plain way (split and join, linear scans), not the way the mod's code
@@ -252,9 +253,268 @@ static class DiffTest
         Same("a leading dot is dropped", "hidden_pack", PackIds.FromName(".hidden_pack"), ".hidden_pack");
     }
 
+    // ------------------------------------------------------------------ identity: Parse against a regex model
+
+    // A readable form of an identity, so two can be compared as strings.
+    static string Repr(AssetId id)
+    {
+        if (id == null) return "(none)";
+        Locator l = id.Locator;
+        return (id.Origin.IsGame ? "game" : id.Origin.Kind + ":" + id.Origin.Token) + "|" + l.Kind + "|" + l.Path + "|" + l.Name + "|" + l.Width + "x" + l.Height;
+    }
+
+    static readonly Regex SceneRx = new Regex(@"^(.+)\.([0-9]{1,5})x([0-9]{1,5})$");
+    static readonly Regex GameRx = new Regex(@"^([^@~]+(?:~[^@~]+)*)(?:@([^@]+))?$");
+    static readonly Regex ModRx = new Regex(@"^([^+]*)\+([^~]+)~(.+)$", RegexOptions.Singleline);
+    static readonly Regex UuidRx = new Regex(@"^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$");
+    static readonly Regex ContainerRx = new Regex(@"^[A-Za-z0-9_-]+$");
+
+    // The spellings as they are documented, read by regular expressions instead of the scan the mod uses. The game's
+    // names are the ones the old PackKey read, now that a name with '+' is never a game picture.
+    static string RefParse(string name)
+    {
+        if (name.Length == 0) return "(none)";
+        if (name.IndexOf('+') >= 0)
+        {
+            var m = ModRx.Match(name);
+            if (!m.Success || !ContainerRx.IsMatch(m.Groups[2].Value)) return "(none)";
+            string token = m.Groups[1].Value, origin;
+            if (UuidRx.IsMatch(token)) origin = "ModUuid:" + token.ToLowerInvariant();
+            else if (RefIsValid(token)) origin = "ModId:" + token;
+            else return "(none)";
+            return origin + "|ModAsset|" + m.Groups[2].Value + "|" + m.Groups[3].Value + "|0x0";
+        }
+        var s = SceneRx.Match(name);
+        if (s.Success)
+        {
+            int w = int.Parse(s.Groups[2].Value), h = int.Parse(s.Groups[3].Value);
+            if (w > 0 && h > 0) return "game|SceneTexture|" + s.Groups[1].Value + "||" + w + "x" + h;
+        }
+        if (name.IndexOf('~') < 0) return "(none)";
+        var g = GameRx.Match(name);
+        if (!g.Success) return "(none)";
+        string path = g.Groups[1].Value.Replace('~', '/');
+        return g.Groups[2].Success ? "game|AtlasSprite|" + path + "|" + g.Groups[2].Value + "|0x0" : "game|SingleSprite|" + path + "||0x0";
+    }
+
+    const string Alphabet = "ab_-.xZ09~@+ ";
+
+    static string AnyName(int max)
+    {
+        int n = rng.Next(max + 1);
+        var c = new char[n];
+        for (int i = 0; i < n; i++) c[i] = Alphabet[rng.Next(Alphabet.Length)];
+        return new string(c);
+    }
+
+    static string AnyToken()
+    {
+        switch (rng.Next(4))
+        {
+            case 0: return Guid.NewGuid().ToString("D");
+            case 1: return Guid.NewGuid().ToString("D").ToUpperInvariant();
+            case 2: return PackIds.FromName(AnyName(8));
+            default: return AnyName(8);
+        }
+    }
+
+    // Raw strings, and strings shaped like each documented spelling with one part spoiled now and then.
+    static string AnyKeyName()
+    {
+        switch (rng.Next(5))
+        {
+            case 0: return AnyName(14);
+            case 1: return AnyToken() + "+" + AnyName(4) + "~" + AnyName(8);
+            case 2: return AnyName(5) + "." + rng.Next(0, 1200) + "x" + rng.Next(0, 1200);
+            case 3: return AnyName(4) + "~" + AnyName(4) + (rng.Next(2) == 0 ? "@" + AnyName(5) : "");
+            default: return AnyToken() + "+" + (rng.Next(2) == 0 ? "Items" : "Paper") + "~" + AnyName(8);
+        }
+    }
+
+    static AssetId AnyId()
+    {
+        switch (rng.Next(5))
+        {
+            case 0: return AssetId.Of(Origin.Game, Locator.Atlas(AnyName(6), AnyName(4)));
+            case 1: return AssetId.Of(Origin.Game, Locator.Single(AnyName(6)));
+            case 2: return AssetId.Of(Origin.Game, Locator.Scene(AnyName(6), rng.Next(-1, 700), rng.Next(-1, 700)));
+            case 3: return AssetId.Of(Origin.FromModId(AnyToken()), Locator.ModAsset(AnyName(3), AnyName(6)));
+            default:
+                Guid u;
+                return Guid.TryParse(AnyToken(), out u) ? AssetId.Of(Origin.FromUuid(u), Locator.ModAsset(rng.Next(2) == 0 ? "Items" : "Paper", AnyName(6))) : null;
+        }
+    }
+
+    static void Identity()
+    {
+        for (int i = 0; i < Rounds; i++)
+        {
+            string name = AnyKeyName();
+            AssetId id = AssetIdCodec.Parse(name);
+            Same("Parse", RefParse(name), Repr(id), "<" + name + ">");
+            if (id == null) continue;
+            // What Parse reads, Format writes in a form that reads back as the same identity.
+            string spelled = AssetIdCodec.Format(id);
+            Same("a parsed identity has a name", true, spelled != null, "<" + name + ">");
+            if (spelled != null) Same("Parse(Format(x)) == x", Repr(id), Repr(AssetIdCodec.Parse(spelled)), "<" + name + "> -> <" + spelled + ">");
+        }
+
+        // Two different identities never share a file name; an identity that is written reads back as itself.
+        var written = new Dictionary<string, string>();
+        for (int i = 0; i < Rounds * 2; i++)
+        {
+            AssetId id = AnyId();
+            if (id == null) continue;
+            string name = AssetIdCodec.Format(id);
+            if (name == null) continue;
+            Same("Parse(Format(x)) == x for a built identity", Repr(id), Repr(AssetIdCodec.Parse(name)), "<" + name + ">");
+            string seen;
+            if (written.TryGetValue(name, out seen)) Same("one name, one identity", seen, Repr(id), "<" + name + ">");
+            else written[name] = Repr(id);
+        }
+    }
+
+    // The origin of a mod from its marker pictures and its declaration, against a plain model.
+    static void OriginChoice()
+    {
+        for (int i = 0; i < Rounds; i++)
+        {
+            var uuids = new List<Guid>();
+            for (int k = rng.Next(4); k > 0; k--) uuids.Add(rng.Next(3) == 0 && uuids.Count > 0 ? uuids[0] : Guid.NewGuid());
+            var extra = new[] { "icon", "origin.", "wall.1x1" }.Where(_ => rng.Next(2) == 0);
+            var keys = uuids.Select(u => OriginMarker.KeyFor(u)).Concat(extra).OrderBy(_ => rng.Next()).ToList();
+            Guid? declared = rng.Next(3) == 0 ? (Guid?)Guid.NewGuid() : rng.Next(4) == 0 && uuids.Count > 0 ? (Guid?)uuids[0] : null;
+            string modId = rng.Next(10) == 0 ? "not valid" : "my_mod";
+            var info = OriginResolver.Resolve(modId, keys, declared);
+
+            var distinct = uuids.Distinct().ToList();
+            string expectedOrigin, expectedProblem;
+            if (declared.HasValue)
+            {
+                expectedOrigin = "ModUuid:" + declared.Value.ToString("D");
+                expectedProblem = distinct.Count == 0 || (distinct.Count == 1 && distinct[0] == declared.Value) ? "no" : "yes";
+            }
+            else if (distinct.Count == 1) { expectedOrigin = "ModUuid:" + distinct[0].ToString("D"); expectedProblem = "no"; }
+            else { expectedOrigin = modId == "my_mod" ? "ModId:my_mod" : "(none)"; expectedProblem = distinct.Count > 1 ? "yes" : "no"; }
+            string input = modId + " keys " + Show(keys) + " declared " + (declared.HasValue ? declared.Value.ToString("D") : "-");
+            Same("origin", expectedOrigin, info.Origin == null ? "(none)" : info.Origin.Kind + ":" + info.Origin.Token, input);
+            Same("problem", expectedProblem, info.Problem == null ? "no" : "yes", input);
+        }
+    }
+
+    // ------------------------------------------------------------------ Swapper: what the dictionaries hold, always
+
+    static Dictionary<string, string> Fresh()
+    {
+        var d = new Dictionary<string, string>();
+        for (int i = 0; i < 5; i++) if (rng.Next(4) > 0) d["n" + i] = "o" + rng.Next(1000);
+        return d;
+    }
+
+    static string Dump(Dictionary<string, string> d)
+    {
+        return Show(d.OrderBy(kv => kv.Key).Select(kv => kv.Key + "=" + kv.Value));
+    }
+
+    // Random runs of replace, restore, suspend and resume over a few dictionaries; a key always stands for one entry
+    // (as ModSprites builds it from mod, container and name). After every step each entry holds what the rules say,
+    // and after RestoreAll every dictionary is as it was at the start.
+    static void Swapping()
+    {
+        for (int round = 0; round < Rounds / 4; round++)
+        {
+            var dicts = new[] { Fresh(), Fresh(), Fresh() };
+            var start = dicts.Select(d => new Dictionary<string, string>(d)).ToArray();
+            var swapper = new Swapper<string>();
+            var latest = new Dictionary<string, string>();     // key -> the replacement it holds now
+            var suspended = new Dictionary<string, string>();  // key -> the replacement to resume
+            for (int step = 0; step < 14; step++)
+            {
+                int d = rng.Next(dicts.Length);
+                string name = "n" + rng.Next(5), key = "k" + d + name;
+                string input = "round " + round + " step " + step + " key " + key;
+                switch (rng.Next(4))
+                {
+                    case 0:
+                    {
+                        string repl = "r" + rng.Next(1000);
+                        bool had = start[d].ContainsKey(name);
+                        bool ok = swapper.Replace(key, dicts[d], name, repl);
+                        Same("Replace succeeds exactly when the entry exists", had, ok, input);
+                        if (ok)
+                        {
+                            Same("Replace writes the replacement", repl, dicts[d][name], input);
+                            latest[key] = repl;
+                            suspended.Remove(key);
+                        }
+                        break;
+                    }
+                    case 1:
+                        swapper.Restore(key);
+                        latest.Remove(key);
+                        suspended.Remove(key);
+                        Same("Restore puts the original back", start[d].ContainsKey(name) ? start[d][name] : null,
+                            dicts[d].ContainsKey(name) ? dicts[d][name] : null, input);
+                        break;
+                    case 2:
+                    {
+                        string repl = swapper.Suspend(key);
+                        string expected;
+                        Same("Suspend returns the replacement exactly when the key is held", latest.TryGetValue(key, out expected), repl != null, input);
+                        if (repl != null)
+                        {
+                            Same("Suspend returns the latest replacement", expected, repl, input);
+                            Same("Suspend shows the original", start[d][name], dicts[d][name], input);
+                            suspended[key] = repl;
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        string repl;
+                        if (suspended.TryGetValue(key, out repl))
+                        {
+                            swapper.Resume(key, repl);
+                            Same("Resume writes the replacement again", repl, dicts[d][name], input);
+                            suspended.Remove(key);
+                        }
+                        break;
+                    }
+                }
+                Same("the number held is the number of keys with a replacement", latest.Count, swapper.Count, input);
+            }
+            foreach (var kv in suspended) swapper.Resume(kv.Key, kv.Value);
+            swapper.RestoreAll();
+            Same("nothing is held after RestoreAll", 0, swapper.Count, "round " + round);
+            for (int i = 0; i < dicts.Length; i++)
+                Same("RestoreAll leaves each dictionary as it was", Dump(start[i]), Dump(dicts[i]), "round " + round + " dict " + i);
+        }
+
+        // Replacing twice under one key keeps the first original; a value someone else wrote in the meantime survives Restore.
+        var twice = new Dictionary<string, string> { { "a", "orig" } };
+        var s = new Swapper<string>();
+        s.Replace("k", twice, "a", "first");
+        s.Replace("k", twice, "a", "second");
+        s.Restore("k");
+        Same("replacing twice keeps the first original", "orig", twice["a"], "");
+        var theirs = new Dictionary<string, string> { { "a", "orig" } };
+        s.Replace("k", theirs, "a", "mine");
+        theirs["a"] = "reloaded";
+        s.Restore("k");
+        Same("Restore leaves a newer value alone", "reloaded", theirs["a"], "");
+        s.Replace("k", theirs, "a", "mine");
+        var back = s.Suspend("k");
+        s.Restore("k");
+        s.Resume("k", back);
+        Same("Resume after Restore writes nothing", "reloaded", theirs["a"], "");   // the entry held "reloaded" when it was replaced again
+    }
+
     static int Main()
     {
         Regressions();
+        Identity();
+        OriginChoice();
+        Swapping();
         Ids();
         Codec();
         Operations();

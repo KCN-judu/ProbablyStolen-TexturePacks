@@ -60,7 +60,7 @@ msgid "Checks"
 msgstr ""
 
 #: manual/building.md:32
-msgid "It runs the decisions in `src/*.Pure.cs` headless, once on examples and once against plain reference models on generated input. When the game is installed and the mod is built, it also runs the game's mod scanner on the build. The mod passes when the scanner reports `capabilities: none` and no `HARD` line."
+msgid "It runs the decisions in `src/*.Pure.cs` headless, once on examples and once against plain reference models on generated input. If Python is installed, it also runs `tests/schema_test.py`, which checks the schema script against the same file-name examples. When the game is installed and the mod is built, it runs the game's mod scanner on the build. The mod passes when the scanner reports `capabilities: none` and no `HARD` line."
 msgstr ""
 
 #: manual/building.md:34
@@ -68,7 +68,7 @@ msgid "The creator kit"
 msgstr ""
 
 #: manual/building.md:40
-msgid "This builds `Catalog.exe` and `PackBuilder.exe`, writes `catalog.tsv` and the placeholders, and zips the kit as `out/TexturePackKit.zip`. The kit holds no game art."
+msgid "This builds `Catalog.exe` and `PackBuilder.exe`, writes `catalog.tsv` and the placeholders, adds the schema script, the provider helper and an empty `schemas` folder, and zips the kit as `out/TexturePackKit.zip`. The kit holds no game art."
 msgstr ""
 
 #: manual/building.md:42
@@ -84,15 +84,164 @@ msgid "`tools/SpriteProbe/build.sh` builds a development mod that writes every s
 msgstr ""
 
 #: manual/building.md:53
-msgid "Install by hand"
+msgid "Sample Provider"
 msgstr ""
 
 #: manual/building.md:55
-msgid "Copy the folder `out/texture_packs` into the game's `Mods` folder, start the game, and enable the mod in the Mods menu. Mods load when the game starts, so restart after enabling or updating one."
+msgid "`tools/SampleProvider/build.sh` builds a development mod that makes one sprite in code and offers it to packs, as a mod author would with `template/TexturePacksClient.cs`. It writes `out/sample_provider`. `tools/SampleProvider/build.sh --install` copies it to the game's `Mods` folder. [For mod authors](for-mod-authors.md#try-it-with-the-sample-provider) says how to use it."
 msgstr ""
 
 #: manual/building.md:57
+msgid "Install by hand"
+msgstr ""
+
+#: manual/building.md:59
+msgid "Copy the folder `out/texture_packs` into the game's `Mods` folder, start the game, and enable the mod in the Mods menu. Mods load when the game starts, so restart after enabling or updating one."
+msgstr ""
+
+#: manual/building.md:61
 msgid "The mod declares no capabilities, so the game enables it without a permission prompt."
+msgstr ""
+
+#: manual/for-mod-authors.md:1
+msgid "For mod authors"
+msgstr ""
+
+#: manual/for-mod-authors.md:3
+msgid "If your mod adds items, papers or sprites, texture packs can replace them without any change to your mod's behaviour. This page says what you have to do, which is often nothing, and what you can do to make it work better."
+msgstr ""
+
+#: manual/for-mod-authors.md:5
+msgid "Items and Paper need nothing"
+msgstr ""
+
+#: manual/for-mod-authors.md:7
+msgid "The game decodes the PNG files in your mod's `Items` and `Paper` folders. A pack can replace each of them, with no code and no change in your mod. A pack file for `Items/crusher_body.png` in the mod `machine_mod` is named `machine_mod+Items~crusher_body.png`. The picture must have the size of yours. The shape of an item always comes from your picture, so a pack never changes which cells an item takes."
+msgstr ""
+
+#: manual/for-mod-authors.md:9
+msgid "Add a UUID"
+msgstr ""
+
+#: manual/for-mod-authors.md:11
+msgid "Without a UUID, packs name your mod by its id. That works, but it cannot tell your mod from another mod with the same id, and a pack breaks if you rename the mod. A UUID is recommended."
+msgstr ""
+
+#: manual/for-mod-authors.md:13
+msgid "Pick a UUID once and keep it for good, for example with `python -c \"import uuid; print(uuid.uuid4())\"`."
+msgstr ""
+
+#: manual/for-mod-authors.md:14
+msgid "Add a 1x1 picture named `Textures/origin.<uuid>.png` to your mod. The game decodes it, and Texture Packs reads the UUID from its name."
+msgstr ""
+
+#: manual/for-mod-authors.md:15
+msgid "Add the same UUID to `manifest.xml`, for example `<AssetOrigin>3f2a9c1e-5b7d-4e2a-9c1e-0a1b2c3d4e5f</AssetOrigin>`. The game ignores this element. The schema script reads it and checks that it matches the marker picture."
+msgstr ""
+
+#: manual/for-mod-authors.md:17
+msgid "A mod with code can declare the UUID with `TexturePacksClient.DeclareOrigin` (below) instead of the marker picture. A pack then names your mod as `3f2a9c1e-5b7d-4e2a-9c1e-0a1b2c3d4e5f+Items~crusher_body.png`."
+msgstr ""
+
+#: manual/for-mod-authors.md:19
+msgid "Pictures you make in code"
+msgstr ""
+
+#: manual/for-mod-authors.md:21
+msgid "A sprite from `Sprite.Create` or an asset bundle has no file in `Items` or `Paper`. To let packs replace it:"
+msgstr ""
+
+#: manual/for-mod-authors.md:23
+msgid "Copy `TexturePacksClient.cs` into your mod. It is in `template/` in this repository and in `for-mod-authors/` in the creator kit. It needs no reference to Texture Packs."
+msgstr ""
+
+#: manual/for-mod-authors.md:24
+msgid "Call `Offer` for each picture in `OnEnable`, and `Withdraw` in `OnDisable`:"
+msgstr ""
+
+#: manual/for-mod-authors.md:35
+msgid "`DeclareOrigin` is optional. `Offer` takes your mod id, a container, the picture's name, your original sprite and a function, `apply`. The container is a word of letters, digits, `_` and `-`. The game decodes only `Items` and `Paper`, so use any other word for what you make in code, such as `Code`. If you offer a picture with the same container and name as a file in your `Items` folder, the offered one is used. A pack names the picture `<UUID or mod id>+<container>~<name>.png`, here `machine_mod+Code~spark.png`, and its file must have the size of your sprite."
+msgstr ""
+
+#: manual/for-mod-authors.md:37
+msgid "Texture Packs calls `apply` with the pack's sprite, and later with your original sprite to put it back. You keep owning your objects. Texture Packs reads your list on every rebuild and again whenever your mod finishes loading, so it does not matter which mod starts first. Without Texture Packs, nothing reads what `Offer` publishes and your mod behaves as if the file were not there."
+msgstr ""
+
+#: manual/for-mod-authors.md:39
+msgid "Texture Packs keeps `apply` and the sprites until its next rebuild or until your mod is disabled. The project's code standard forbids keeping objects of the store (`GameItem`, `PixelWindow`, `TreeNodeRender`, scene objects) after the player leaves it, so `apply` must not capture one. Keep the current sprite in a static field and let your own drawing code read it, as `current` above, or call `Withdraw` when the store is left."
+msgstr ""
+
+#: manual/for-mod-authors.md:41
+#: manual/making-a-pack.md:111
+msgid "The schema"
+msgstr ""
+
+#: manual/for-mod-authors.md:43
+msgid "The schema lists every picture of your mod that a pack can replace, with its file name, size and your mod's version. Pack creators need it to export your pictures and to check their packs. Write it before each release and ship it in your mod's folder as `textures.schema.tsv`. The game never reads it."
+msgstr ""
+
+#: manual/for-mod-authors.md:49
+msgid "The script is `schema/schema.py` in the creator kit and `tools/schema/schema.py` in this repository. It needs [Python](https://www.python.org/downloads/) 3.10 or newer, and Pillow (`requirements.txt` next to it) only if your pictures are JPG. It reads your files and never runs your code. `--out FILE` writes the schema somewhere else."
+msgstr ""
+
+#: manual/for-mod-authors.md:51
+msgid "It lists:"
+msgstr ""
+
+#: manual/for-mod-authors.md:53
+msgid "the PNG and JPG files in `Items` and `Paper`, with their sizes;"
+msgstr ""
+
+#: manual/for-mod-authors.md:54
+msgid "the pictures in `textures.extra.tsv`, a file you write next to `manifest.xml` for pictures made in code. Its first line names the columns, and each following line is one picture, with the columns separated by tabs: `container`, `name`, `width`, `height`;"
+msgstr ""
+
+#: manual/for-mod-authors.md:55
+msgid "except the pictures in `textures.exclude`, a file with one `container/name` per line."
+msgstr ""
+
+#: manual/for-mod-authors.md:62
+msgid "The script takes the UUID from `<AssetOrigin>` and from the marker picture, and stops with an error when they differ. A mod without a UUID gets a warning, and the mod id is used. It also stops with an error for a name that no file name can spell, such as a container with a space or an empty name."
+msgstr ""
+
+#: manual/for-mod-authors.md:64
+msgid "Pictures that live in an asset bundle are not read. List them in `textures.extra.tsv`."
+msgstr ""
+
+#: manual/for-mod-authors.md:66
+msgid "Try it with the sample provider"
+msgstr ""
+
+#: manual/for-mod-authors.md:68
+msgid "`tools/SampleProvider` is a small mod that makes a 16x16 yellow square in code and offers it. It shows what a provider does and tests the whole path in the game."
+msgstr ""
+
+#: manual/for-mod-authors.md:70
+msgid "Run `tools/SampleProvider/build.sh --install` and enable **Sample Provider (development)**. `Player.log` says `[SampleProvider] showing the yellow square`. Nothing else happens, and nothing fails, because Texture Packs is not there to read the offer."
+msgstr ""
+
+#: manual/for-mod-authors.md:71
+msgid "Enable Texture Packs and a pack with a 16x16 picture named `4b6f1f6c-2d6e-4a46-9f7e-5c1d2a7b8e90+Code~square.png`. Restart the game. `Player.log` now says `[SampleProvider] showing the pack's sprite`."
+msgstr ""
+
+#: manual/for-mod-authors.md:73
+msgid "Switching the pack off in the pack manager and clicking Apply brings the yellow square back."
+msgstr ""
+
+#: manual/for-mod-authors.md:75
+msgid "What is not supported"
+msgstr ""
+
+#: manual/for-mod-authors.md:77
+msgid "The schema script does not read asset bundles. List their pictures in `textures.extra.tsv`."
+msgstr ""
+
+#: manual/for-mod-authors.md:78
+msgid "You can offer sprites, not textures (`Texture2D`)."
+msgstr ""
+
+#: manual/for-mod-authors.md:79
+msgid "A pack cannot change an item's shape, only how it looks."
 msgstr ""
 
 #: manual/how-it-works.md:1
@@ -104,7 +253,7 @@ msgid "![How the loader and the creator kit fit together: the game's loader deco
 msgstr ""
 
 #: manual/how-it-works.md:5
-msgid "The left side of the diagram is the mod in the game. The right side is the [creator kit](making-a-pack.md). Dotted boxes are not part of the mod yet."
+msgid "The left side of the diagram is the mod in the game. The right side is the [creator kit](making-a-pack.md)."
 msgstr ""
 
 #: manual/how-it-works.md:7
@@ -112,7 +261,7 @@ msgid "Finding the packs"
 msgstr ""
 
 #: manual/how-it-works.md:9
-msgid "A pack is an enabled mod that lists `texture_packs` among its prerequisites. The game's loader has already decoded every PNG in the pack's `Textures` folder, so Texture Packs reads nothing from disk. It reads the packs again each time a pack's assets finish loading, after Apply, and when you enable the mod from the Mods menu after start-up."
+msgid "A pack is an enabled mod that lists `texture_packs` among its prerequisites. The game's loader has already decoded every PNG in the pack's `Textures` folder, so Texture Packs reads nothing from disk. It reads the packs again each time a pack's assets finish loading, each time a mod finishes loading that a pack has pictures for (they exist from then on, whichever of the two finished first), after Apply, and when you enable the mod from the Mods menu after start-up."
 msgstr ""
 
 #: manual/how-it-works.md:11
@@ -143,51 +292,180 @@ msgstr ""
 msgid "The whole scene texture `store_mid` of that size"
 msgstr ""
 
+#: manual/how-it-works.md:20
+msgid "The picture `crusher_body` in the `Items` folder of the mod with the id `machine_mod`"
+msgstr ""
+
 #: manual/how-it-works.md:21
-msgid "Scene textures carry their size in the name because several share a name. `wall`, for example, is 960x540 in the shop and 640x360 in the run summary. A PNG whose name is none of these is not a replacement, and the game keeps its own picture. A pack may hold such files."
+msgid "The picture `note` in the `Paper` folder of the mod that declared that UUID"
 msgstr ""
 
 #: manual/how-it-works.md:23
-msgid "Which pack wins"
+msgid "Scene textures carry their size in the name because several share a name. `wall`, for example, is 960x540 in the shop and 640x360 in the run summary. A PNG whose name is none of these is not a replacement, and the game keeps its own picture. A pack may hold such files."
 msgstr ""
 
 #: manual/how-it-works.md:25
-msgid "For each picture, every switched-on pack that has a file for it is a candidate, the highest in the list first. A candidate the game cannot use is rejected before the order is considered: an unknown name or a wrong size. The first usable candidate wins. The usable ones below it count as covered."
+msgid "A picture of a mod is written as origin, `+`, container, `~`, name:"
 msgstr ""
 
 #: manual/how-it-works.md:27
-msgid "Sprites"
+msgid "The origin is the mod's UUID or, for a mod without one, its mod id. A UUID may be written in any case and is read as lower case."
+msgstr ""
+
+#: manual/how-it-works.md:28
+msgid "The container is one word of letters, digits, `_` and `-`. `Items` and `Paper` are the two folders the game decodes. A mod that makes sprites in code may use any other word."
 msgstr ""
 
 #: manual/how-it-works.md:29
-msgid "Nearly every sprite reaches the game through `RenderHandler`. A postfix on `RenderHandler.LoadFromAtlasRaw` (which `LoadFromAtlas` and `TryLoadFromAtlas` call) and on `RenderHandler.LoadFromFile` swaps the game's sprite for the pack's. The new sprite has the original's size, pivot, pixels per unit and nine-slice border, so the game lays it out as before."
+msgid "The name is everything after the first `~`: the file name in the mod's folder without its extension."
 msgstr ""
 
 #: manual/how-it-works.md:31
-msgid "`RenderHandler` keeps the window frame and grid sprites in fields it fills once. Texture Packs sets those fields again after every apply and after `RenderHandler.Awake`."
+msgid "No mod id, UUID or game picture contains a `+`, so the first `+` always ends the origin, and a name with a `+` in it is never a picture of the game."
 msgstr ""
 
 #: manual/how-it-works.md:33
-msgid "Item shapes come from the transparency of the item's sprite. `GameItem.BuildShapeFromSprite` is patched to see the game's original, so a pack changes how an item looks and never which cells it takes."
+msgid "Identity"
 msgstr ""
 
 #: manual/how-it-works.md:35
-msgid "Scene textures"
+msgid "Every replaceable picture has an identity of two values. The origin says where the picture comes from: the game, or one mod. The locator says where it is inside the origin: for the game a sprite in a Resources atlas, a single Resources sprite or a scene texture, for a mod an asset in a container. An identity pairs only what exists: the game has no mod assets, and a mod has no Resources sprites."
 msgstr ""
 
 #: manual/how-it-works.md:37
-msgid "Backgrounds, fixtures, portraits and most of the interface are textures stored in the scene files. They do not pass through `RenderHandler`. After every scene load, Texture Packs copies the pack's pixels into the game's texture on the graphics card. Every sprite, animation frame and portrait cut from that texture changes at once. The original is kept aside and put back when the packs change or the mod is disabled."
+msgid "The identity is not one string, because everything that decides something compares identities: the order of the packs, the check for two files with the same target, and the numbers in the pack manager. With a string, each of those would have to take the name apart again, and the spelling of the file name would become a format they all depend on. The file name is only how an identity is written on disk. One class, `AssetIdCodec`, reads and writes it. The pack builder is compiled with the same class, so the builder and the game read a name the same way. The codec never gives two identities one name, and reading a name it wrote gives back the same identity."
 msgstr ""
 
 #: manual/how-it-works.md:39
-msgid "The sizes must match exactly. A texture the game stores compressed as DXT1 or DXT5 is compressed again at run time to match. Other compressed formats cannot be replaced, and a graphics device that cannot copy textures keeps the game's pictures. Each case writes one warning to `Player.log`."
+msgid "The origin of a mod"
 msgstr ""
 
 #: manual/how-it-works.md:41
-msgid "The saved order"
+msgid "Texture Packs reads no files of other mods. It learns a mod's origin in this order:"
 msgstr ""
 
 #: manual/how-it-works.md:43
+msgid "The mod's code declares a UUID (`TexturePacksClient.DeclareOrigin`, see [For mod authors](for-mod-authors.md))."
+msgstr ""
+
+#: manual/how-it-works.md:44
+msgid "The mod carries a 1x1 marker picture `Textures/origin.<uuid>.png`. The game decodes it into the mod's `LoadedMod.Textures` under the key `origin.<uuid>`, and Texture Packs looks for that key."
+msgstr ""
+
+#: manual/how-it-works.md:45
+msgid "The mod's id."
+msgstr ""
+
+#: manual/how-it-works.md:47
+msgid "A declaration from code wins over a marker. If they name different UUIDs, or a mod has several markers, `Player.log` gets one warning. If two enabled mods end up with the same origin, the first is used and the second gets a warning. `manifest.xml` may also carry the UUID as `<AssetOrigin>`. The game keeps only its own fixed fields and ignores that element, so Texture Packs cannot read it. The [schema script](for-mod-authors.md#the-schema) does, and checks that it agrees with the marker."
+msgstr ""
+
+#: manual/how-it-works.md:49
+msgid "The mod id works, but it is a weaker name. Two mods can have the same id, and a mod can be renamed. A UUID the author picks once survives both, and a local copy of the mod and its Workshop copy share it. A pack written for the UUID keeps working through all of these."
+msgstr ""
+
+#: manual/how-it-works.md:51
+#: manual/making-a-pack.md:107
+msgid "Pictures of other mods"
+msgstr ""
+
+#: manual/how-it-works.md:53
+msgid "The game decodes the PNG files in a mod's `Items` folder into `LoadedMod.Sprites` and the files in `Paper` into `LoadedMod.PaperSprites`, under the file name without `.png`. Whoever needs the sprite looks it up there each time: `GameItemElement.ResolveSpriteByName` for items, `CustomUIManager.GetModSprite` for icons, `PaperAssets.FromMod` for papers. Texture Packs replaces the entry with a sprite made from the pack's picture. Every reader gets it, and none of them needs a patch."
+msgstr ""
+
+#: manual/how-it-works.md:55
+msgid "The new sprite has the original's size, pivot, pixels per unit and border, so the picture must have exactly the original's size. The original goes back into the dictionary when the pack is switched off, when a rebuild no longer picks the picture, and when Texture Packs is disabled."
+msgstr ""
+
+#: manual/how-it-works.md:57
+msgid "An item's shape stays as it was, for the same reason as for the game's own items. It comes from the sprite's transparency, which `GameItem.SetSpriteAndShapeFromMod` reads from the dictionary when the item is made. That method is patched: while it runs, the original is back in the dictionary, and afterwards the pack's sprite returns. A pack changes how a mod's item looks and never which cells it takes."
+msgstr ""
+
+#: manual/how-it-works.md:59
+msgid "The provider bridge"
+msgstr ""
+
+#: manual/how-it-works.md:61
+msgid "A mod that makes sprites in code (`Sprite.Create`, an asset bundle) has no file in `Items` for Texture Packs to replace. Such a mod, a provider, publishes a list of its pictures in two slots of the `AppDomain`, which every mod's assembly shares:"
+msgstr ""
+
+#: manual/how-it-works.md:63
+msgid "Slot"
+msgstr ""
+
+#: manual/how-it-works.md:63
+msgid "Holds"
+msgstr ""
+
+#: manual/how-it-works.md:65
+msgid "A function that returns one row per picture: container, name, the original sprite and an `apply` function"
+msgstr ""
+
+#: manual/how-it-works.md:66
+msgid "The mod's UUID, if it declares one"
+msgstr ""
+
+#: manual/how-it-works.md:68
+msgid "Texture Packs reads the slots on every rebuild and writes nothing back. It also rebuilds when a provider finishes loading. So it does not matter which of the two mods starts first, and a provider works the same when Texture Packs is not installed: nothing reads its slots. `apply` receives the pack's sprite, and later the original, to put it back. The provider keeps owning its sprites. If a picture is offered from code and also exists in the mod's `Items` folder, the one from code is used."
+msgstr ""
+
+#: manual/how-it-works.md:70
+msgid "The slots stand in for an API assembly that every provider would share. The game resolves a mod's assembly references only inside that mod's own folder, so another mod would not find a `TexturePacks.Api.dll` that ships with Texture Packs. Instead, a provider copies `template/TexturePacksClient.cs` into its own code. It has three calls, `DeclareOrigin`, `Offer` and `Withdraw`, and needs no reference to Texture Packs. Only sprites can be offered, not textures."
+msgstr ""
+
+#: manual/how-it-works.md:72
+msgid "Texture Packs keeps each `apply` function and the sprites it was given until the next rebuild or until the provider is disabled. The code standard forbids keeping objects of the store (`GameItem`, `PixelWindow`, `TreeNodeRender`, scene objects) after the player leaves it, so `apply` must not capture one. Keep the current sprite in a static field that the drawing code reads, or call `Withdraw` when the store is left."
+msgstr ""
+
+#: manual/how-it-works.md:74
+msgid "Which pack wins"
+msgstr ""
+
+#: manual/how-it-works.md:76
+msgid "For each picture, every switched-on pack that has a file for it is a candidate, the highest in the list first. A candidate the game cannot use is rejected before the order is considered: an unknown name, a mod that is not enabled or has no such picture, or a wrong size. The first usable candidate wins. The usable ones below it count as covered."
+msgstr ""
+
+#: manual/how-it-works.md:78
+msgid "Sprites"
+msgstr ""
+
+#: manual/how-it-works.md:80
+msgid "Nearly every sprite reaches the game through `RenderHandler`. A postfix on `RenderHandler.LoadFromAtlasRaw` (which `LoadFromAtlas` and `TryLoadFromAtlas` call) and on `RenderHandler.LoadFromFile` swaps the game's sprite for the pack's. The new sprite has the original's size, pivot, pixels per unit and nine-slice border, so the game lays it out as before."
+msgstr ""
+
+#: manual/how-it-works.md:82
+msgid "`RenderHandler` keeps the window frame and grid sprites in fields it fills once. Texture Packs sets those fields again after every apply and after `RenderHandler.Awake`."
+msgstr ""
+
+#: manual/how-it-works.md:84
+msgid "Item shapes come from the transparency of the item's sprite. `GameItem.BuildShapeFromSprite` is patched to see the game's original, so a pack changes how an item looks and never which cells it takes."
+msgstr ""
+
+#: manual/how-it-works.md:86
+msgid "Scene textures"
+msgstr ""
+
+#: manual/how-it-works.md:88
+msgid "Backgrounds, fixtures, portraits and most of the interface are textures stored in the scene files. They do not pass through `RenderHandler`. After every scene load, Texture Packs copies the pack's pixels into the game's texture on the graphics card. Every sprite, animation frame and portrait cut from that texture changes at once. The original is kept aside and put back when the packs change or the mod is disabled."
+msgstr ""
+
+#: manual/how-it-works.md:90
+msgid "The sizes must match exactly. A texture the game stores compressed as DXT1 or DXT5 is compressed again at run time to match. Other compressed formats cannot be replaced, and a graphics device that cannot copy textures keeps the game's pictures. Each case writes one warning to `Player.log`."
+msgstr ""
+
+#: manual/how-it-works.md:92
+msgid "Tests"
+msgstr ""
+
+#: manual/how-it-works.md:94
+msgid "`tests/run.sh` checks the identity, the file-name codec and the choice of a mod's origin without the game. `tests/PureTest.cs` holds examples. `tests/DiffTest.cs` generates names and checks that each reads back as the identity it was written from and that no two identities share a name. `tests/schema_test.py` builds a small mod in a temporary folder and checks that the schema script spells file names as the C# codec does, using the same examples. The run ends with the game's own mod scanner on the build."
+msgstr ""
+
+#: manual/how-it-works.md:96
+msgid "The saved order"
+msgstr ""
+
+#: manual/how-it-works.md:98
 msgid "The order is one line in the config, top first, each pack marked `+` (on) or `-` (off), for example `+hd_items;-old_ui;+dark_shop`. A `%` or `;` inside a pack id is written as `%25` or `%3B`."
 msgstr ""
 
@@ -208,78 +486,82 @@ msgid "Texture Packs lets mods replace the game's pictures. A texture pack is a 
 msgstr ""
 
 #: manual/index.md:10
-msgid "A pack replaces only the pictures it holds. The game's own pictures stay everywhere else. You can install several packs. Where two of them replace the same picture, the one higher in your list wins."
+msgid "A pack can also replace pictures that other mods add to the game, such as the items and papers of a gameplay mod. The mod's author does not have to change anything for that, and a mod that makes its sprites in code can offer them too. A pack names such a picture by the mod's id or UUID, and it only takes effect while that mod is enabled. See [For mod authors](for-mod-authors.md) and [Making a texture pack](making-a-pack.md#pictures-of-other-mods)."
 msgstr ""
 
 #: manual/index.md:12
-msgid "Using packs"
+msgid "A pack replaces only the pictures it holds. The game's own pictures stay everywhere else. You can install several packs. Where two of them replace the same picture, the one higher in your list wins."
 msgstr ""
 
 #: manual/index.md:14
-msgid "Put the pack's folder in the game's `Mods` folder."
-msgstr ""
-
-#: manual/index.md:15
-msgid "Enable **Texture Packs** and the pack in the Mods menu, and restart the game."
+msgid "Using packs"
 msgstr ""
 
 #: manual/index.md:16
-msgid "Click the settings button of Texture Packs in the Mods menu. It opens the pack manager."
+msgid "Put the pack's folder in the game's `Mods` folder."
+msgstr ""
+
+#: manual/index.md:17
+msgid "Enable **Texture Packs** and the pack in the Mods menu, and restart the game."
 msgstr ""
 
 #: manual/index.md:18
-msgid "The pack manager lists the installed packs, the top one first. Each row has:"
+msgid "Click the settings button of Texture Packs in the Mods menu. It opens the pack manager."
 msgstr ""
 
 #: manual/index.md:20
-msgid "a switch, to turn the pack off without uninstalling it;"
-msgstr ""
-
-#: manual/index.md:21
-msgid "the pack's icon, if it has one, and a tooltip with its name, version, author, description and number of pictures;"
+msgid "The pack manager lists the installed packs, the top one first. Each row has:"
 msgstr ""
 
 #: manual/index.md:22
-msgid "the number of its pictures in use, the number left out because a pack higher up replaces the same picture, and the number skipped;"
+msgid "a switch, to turn the pack off without uninstalling it;"
 msgstr ""
 
 #: manual/index.md:23
-msgid "**Up** and **Down**, to move the pack one place."
+msgid "the pack's icon, if it has one, and a tooltip with its name, version, author, description and number of pictures;"
+msgstr ""
+
+#: manual/index.md:24
+msgid "the number of its pictures in use, the number left out because a pack higher up replaces the same picture, and the number skipped;"
 msgstr ""
 
 #: manual/index.md:25
-msgid "Changes wait until you click **Apply**. Apply saves the order and puts the packs in place at once, without a restart. **Close** or Escape drops changes you did not apply."
+msgid "**Up** and **Down**, to move the pack one place."
 msgstr ""
 
 #: manual/index.md:27
-msgid "A new pack starts on top and switched on. A pack that is no longer installed keeps its place in the saved order, so it returns to the same place when you install it again."
+msgid "Changes wait until you click **Apply**. Apply saves the order and puts the packs in place at once, without a restart. **Close** or Escape drops changes you did not apply."
 msgstr ""
 
 #: manual/index.md:29
-msgid "Skipped pictures"
+msgid "A new pack starts on top and switched on. A pack that is no longer installed keeps its place in the saved order, so it returns to the same place when you install it again."
 msgstr ""
 
 #: manual/index.md:31
-msgid "A picture is skipped when the game has no picture of that name, or when its size differs from the game's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it."
+msgid "Skipped pictures"
 msgstr ""
 
 #: manual/index.md:33
-msgid "Settings"
+msgid "A picture is skipped when the game has no picture of that name, when no enabled mod has the picture it names, or when its size differs from the original's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it."
 msgstr ""
 
 #: manual/index.md:35
-msgid "The pack manager is the only setting. The order and the switches are saved in the mod's config file as one entry, `packs`."
+msgid "Settings"
 msgstr ""
 
 #: manual/index.md:37
-msgid "Compatibility"
+msgid "The pack manager is the only setting. The order and the switches are saved in the mod's config file as one entry, `packs`."
 msgstr ""
 
 #: manual/index.md:39
-msgid "Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite` and `ModConfigWindow.Open`. See [How it works](how-it-works.md)."
+msgid "Compatibility"
 msgstr ""
 
 #: manual/index.md:41
+msgid "Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite`, `GameItem.SetSpriteAndShapeFromMod` and `ModConfigWindow.Open`. See [How it works](how-it-works.md)."
+msgstr ""
+
+#: manual/index.md:43
 msgid "To make a pack, see [Making a texture pack](making-a-pack.md)."
 msgstr ""
 
@@ -327,154 +609,270 @@ msgstr ""
 msgid "The empty file every pack carries (see below)."
 msgstr ""
 
-#: manual/making-a-pack.md:17
-msgid "The kit holds no game art. You get the original pictures from your own game with the export script, and you should not share them: only your own pictures go into a pack."
+#: manual/making-a-pack.md:16
+msgid "Where you put the schemas of mods whose pictures you replace. `PackBuilder.exe` reads every `*.schema.tsv` in it."
 msgstr ""
 
-#: manual/making-a-pack.md:19
+#: manual/making-a-pack.md:17
+msgid "A script that writes a mod's schema, for mods that do not ship one."
+msgstr ""
+
+#: manual/making-a-pack.md:18
+msgid "A file for mod authors who make sprites in code. You do not need it."
+msgstr ""
+
+#: manual/making-a-pack.md:20
+msgid "The kit holds no game art. You get the original pictures from your own game with the export script, and you should not share them: only your own pictures go into a pack. The same goes for the pictures of other mods."
+msgstr ""
+
+#: manual/making-a-pack.md:22
 msgid "1. Export the game's pictures"
 msgstr ""
 
-#: manual/making-a-pack.md:21
+#: manual/making-a-pack.md:24
 msgid "The export script reads the game's files directly; the game does not need to run. It needs [Python](https://www.python.org/downloads/) 3.10 or newer."
 msgstr ""
 
-#: manual/making-a-pack.md:23
+#: manual/making-a-pack.md:26
 msgid "Open a terminal in the kit's `export` folder and install what the script uses:"
 msgstr ""
 
-#: manual/making-a-pack.md:29
+#: manual/making-a-pack.md:32
 msgid "Export, giving the game folder:"
 msgstr ""
 
-#: manual/making-a-pack.md:35
+#: manual/making-a-pack.md:38
 msgid "Everything in the catalog is written: about 1,800 pictures. `--only item` (or `ui`, `scene`, `character`, `new-game`) exports one category. Files already there are kept; `--overwrite` writes them again, for example after a game update."
 msgstr ""
 
-#: manual/making-a-pack.md:37
+#: manual/making-a-pack.md:40
 msgid "The pictures land sorted the same way as the placeholders:"
 msgstr ""
 
-#: manual/making-a-pack.md:39
+#: manual/making-a-pack.md:42
 msgid "Folder"
 msgstr ""
 
-#: manual/making-a-pack.md:39
+#: manual/making-a-pack.md:42
 msgid "What is in it"
 msgstr ""
 
-#: manual/making-a-pack.md:41
+#: manual/making-a-pack.md:44
 msgid "Every item, one file per item picture"
 msgstr ""
 
-#: manual/making-a-pack.md:42
+#: manual/making-a-pack.md:45
 msgid "What the magnifier shows when appraising: letters, seals, chips, burger layers, prosthetic hands, and the magnifier itself"
 msgstr ""
 
-#: manual/making-a-pack.md:43
+#: manual/making-a-pack.md:46
 msgid "Check cards and the guide pictures that show an item's details"
 msgstr ""
 
-#: manual/making-a-pack.md:44
+#: manual/making-a-pack.md:47
 msgid "The full-screen body of a tool when it is open: scanners, the labeler"
 msgstr ""
 
-#: manual/making-a-pack.md:45
+#: manual/making-a-pack.md:48
 msgid "Window frames and grid cells"
 msgstr ""
 
-#: manual/making-a-pack.md:46
+#: manual/making-a-pack.md:49
 msgid "Buttons, panels, papers, the phone and tablet screens"
 msgstr ""
 
-#: manual/making-a-pack.md:47
+#: manual/making-a-pack.md:50
 msgid "Whole backgrounds"
 msgstr ""
 
-#: manual/making-a-pack.md:48
+#: manual/making-a-pack.md:51
 msgid "The main menu backgrounds and the run-summary picture"
 msgstr ""
 
-#: manual/making-a-pack.md:49
+#: manual/making-a-pack.md:52
 msgid "The shop's walls, doors, windows, floor and lights, as layers"
 msgstr ""
 
-#: manual/making-a-pack.md:50
+#: manual/making-a-pack.md:53
 msgid "What stands in the shop: phone, radio, calendar, display cases, the trash can, vending machines, the wires that light up"
 msgstr ""
 
-#: manual/making-a-pack.md:51
+#: manual/making-a-pack.md:54
 msgid "People walking past, desk and tape animations"
 msgstr ""
 
-#: manual/making-a-pack.md:52
+#: manual/making-a-pack.md:55
 msgid "Every customer portrait and clothing layer"
 msgstr ""
 
-#: manual/making-a-pack.md:53
+#: manual/making-a-pack.md:56
 msgid "Specializations, perk icons and the new-game screens"
 msgstr ""
 
-#: manual/making-a-pack.md:55
+#: manual/making-a-pack.md:58
 msgid "2. Draw"
 msgstr ""
 
-#: manual/making-a-pack.md:57
+#: manual/making-a-pack.md:60
 msgid "Change any picture you like and leave the rest out: a pack only needs the files it replaces."
 msgstr ""
 
-#: manual/making-a-pack.md:59
+#: manual/making-a-pack.md:62
 msgid "**Keep the size.** A picture must be exactly as wide and as tall as the game's. The size is in `catalog.tsv` and in every scene file name (`store_mid.960x540.png`). A picture of another size is left out."
 msgstr ""
 
-#: manual/making-a-pack.md:60
+#: manual/making-a-pack.md:63
 msgid "**Keep the name.** The file name says what is replaced. Item and window pictures look like `items~items_tool2@blender.png`; scene pictures like `wall.960x540.png`. Use the names in `catalog.tsv` exactly, including lower case."
 msgstr ""
 
-#: manual/making-a-pack.md:61
+#: manual/making-a-pack.md:64
 msgid "**Pictures with several frames** (walking people, customer clothing, icon sheets) are replaced as a whole. Keep each frame where it was."
 msgstr ""
 
-#: manual/making-a-pack.md:62
+#: manual/making-a-pack.md:65
 msgid "**Perk icons are white.** The game colours them itself, so draw them in white and change the shape."
 msgstr ""
 
-#: manual/making-a-pack.md:63
+#: manual/making-a-pack.md:66
 msgid "**Item shapes do not change.** Which cells an item takes comes from the game's picture, whatever your pack draws."
 msgstr ""
 
-#: manual/making-a-pack.md:64
+#: manual/making-a-pack.md:67
 msgid "**Appraisal close-ups go with the item.** If you redraw an item that can be appraised, redraw its close-ups too, or the magnifier shows the old one."
 msgstr ""
 
-#: manual/making-a-pack.md:65
+#: manual/making-a-pack.md:68
 msgid "**A pack icon is optional.** A file named `pack.png`, of any size, is shown next to your pack in the pack manager. It replaces no picture of the game."
 msgstr ""
 
-#: manual/making-a-pack.md:67
+#: manual/making-a-pack.md:70
 msgid "You can keep your work in the category folders; the pack builder flattens them."
 msgstr ""
 
-#: manual/making-a-pack.md:69
+#: manual/making-a-pack.md:72
 msgid "3. Build the pack"
 msgstr ""
 
-#: manual/making-a-pack.md:75
+#: manual/making-a-pack.md:78
 msgid "The builder copies every PNG under your folder into the pack's `Textures` folder. It first deletes the PNG files already in that folder, so the pack holds exactly what is in your folder. It writes `TexturePack.dll` if the pack has none, and a `manifest.xml` if the pack has none. It stops without writing anything if two files share a name or a size is wrong, and notes any name that is not in the catalog."
 msgstr ""
 
-#: manual/making-a-pack.md:77
+#: manual/making-a-pack.md:80
 msgid "Open `manifest.xml` and fill in the name, author and description. Two lines must stay as they are:"
 msgstr ""
 
-#: manual/making-a-pack.md:88
+#: manual/making-a-pack.md:91
 msgid "The game only loads a mod that has code, so every pack carries `TexturePack.dll`, which does nothing. Every pack can use the same copy."
 msgstr ""
 
-#: manual/making-a-pack.md:90
+#: manual/making-a-pack.md:93
 msgid "4. Try it"
 msgstr ""
 
-#: manual/making-a-pack.md:92
+#: manual/making-a-pack.md:95
 msgid "Enable **Texture Packs** and your pack in the Mods menu and restart. To change the order of several packs, or to switch one off, use the [pack manager](index.md#using-packs). The game's log (`Player.log`) has a `[TexturePacks]` line that lists each pack with the number of pictures used, covered and skipped. Every skipped picture has its own warning that says why. When a scene loads, another line lists the scene pictures that were replaced. The pack manager shows the same numbers."
+msgstr ""
+
+#: manual/making-a-pack.md:97
+msgid "Looking at a pack without the game"
+msgstr ""
+
+#: manual/making-a-pack.md:99
+msgid "The repository has a preview that lays out the shop as the game does and puts a folder of your pictures into it, so a picture can be judged in the scene before the game starts. The shop is a stack of sprites, each with a sorting order and a position; the preview reads them from your copy of the game and draws them in that order."
+msgstr ""
+
+#: manual/making-a-pack.md:105
+msgid "`--compare` puts the game's own picture above yours. `--hide ShutterDoor` leaves a layer out (here, to see the room behind the serving window), `--list` prints the layers in drawing order, and `--scale 2` enlarges the result. A picture of a size the game does not use is left out and listed. The preview shows the shop view only. It does not draw the customer, the text or the game's lighting effects, so it is for looking at a pack, not a copy of the game's screen. It needs [Python](https://www.python.org/downloads/) and the packages in `tools/export/requirements.txt`."
+msgstr ""
+
+#: manual/making-a-pack.md:109
+msgid "A pack can also replace the pictures that other mods add: items, papers, and sprites a mod makes in code. The mod does not have to know about your pack, but you need its schema to name and size your pictures."
+msgstr ""
+
+#: manual/making-a-pack.md:113
+msgid "A schema is a file, `textures.schema.tsv`, that lists every picture of one mod that a pack can replace. It has the first eight columns of `catalog.tsv` (`file`, `kind`, `category`, `group`, `width`, `height`, `source`, `name`), then `origin`, `container` and `version`. For a mod picture, `file` is the name your file must have, `group` is the mod id and `version` is the mod's version."
+msgstr ""
+
+#: manual/making-a-pack.md:115
+msgid "If the mod's author ships a schema, it is in the mod's folder."
+msgstr ""
+
+#: manual/making-a-pack.md:116
+msgid "If not, write one. Run the script from the kit on the mod's folder; it reads the files and does not run the mod: `python schema\\schema.py \"<game>\\Mods\\machine_mod\"`. It lists the pictures in the mod's `Items` and `Paper` folders. Pictures that the mod makes in code, or keeps in an asset bundle, are not found. Ask the author to list them."
+msgstr ""
+
+#: manual/making-a-pack.md:117
+msgid "Put the schema in the kit's `schemas` folder, or pass it to the tools with `--schema` as below."
+msgstr ""
+
+#: manual/making-a-pack.md:119
+msgid "The file name"
+msgstr ""
+
+#: manual/making-a-pack.md:121
+msgid "A mod's picture is named `<origin>+<container>~<name>.png`. Copy it from the `file` column of the schema, for example:"
+msgstr ""
+
+#: manual/making-a-pack.md:127
+msgid "The origin is the mod's UUID. A mod without a UUID is named by its mod id, as in `machine_mod+Items~crusher_body.png`. The picture must have exactly the size in the schema. [How it works](how-it-works.md#what-a-file-name-means) explains the parts of the name."
+msgstr ""
+
+#: manual/making-a-pack.md:129
+msgid "Export the mod's pictures"
+msgstr ""
+
+#: manual/making-a-pack.md:131
+msgid "Give the export script the schemas. `--schema FILE` adds one mod and can be repeated. `--mods DIR` adds every `*/textures.schema.tsv` in a Mods folder:"
+msgstr ""
+
+#: manual/making-a-pack.md:137
+msgid "The pictures go into `mod/<mod id>/` in the output folder. The script copies each picture from the mod's own `Items` or `Paper` folder, next to the schema. For a picture with no file there, it writes a flat grey rectangle of the right size. `--only mod` exports only the mods' pictures. The game's export is the same as without these options."
+msgstr ""
+
+#: manual/making-a-pack.md:139
+msgid "Build the pack"
+msgstr ""
+
+#: manual/making-a-pack.md:141
+msgid "Give PackBuilder the same schemas:"
+msgstr ""
+
+#: manual/making-a-pack.md:147
+msgid "`--schema` can be repeated. PackBuilder also reads every `*.schema.tsv` in the `schemas` folder next to it. It checks your mod pictures by what they replace, not by how the name is spelled, and reports:"
+msgstr ""
+
+#: manual/making-a-pack.md:149
+msgid "Message"
+msgstr ""
+
+#: manual/making-a-pack.md:149
+msgid "What it means"
+msgstr ""
+
+#: manual/making-a-pack.md:151
+msgid "The size is wrong. The message gives the size in the schema and the mod version the schema was written for. The build stops."
+msgstr ""
+
+#: manual/making-a-pack.md:152
+msgid "The mod has a UUID, and the file names it by its id. The message shows the file name to use."
+msgstr ""
+
+#: manual/making-a-pack.md:153
+msgid "No schema lists this picture. The mod may be newer or older than the schema, or you gave no schema for it. The file is still copied."
+msgstr ""
+
+#: manual/making-a-pack.md:154
+msgid "Two files are one picture, for example the same UUID written in upper and lower case. The build stops."
+msgstr ""
+
+#: manual/making-a-pack.md:156
+msgid "When a mod's update changes a picture's size, rewrite its schema and run PackBuilder again: it lists the pictures to redraw."
+msgstr ""
+
+#: manual/making-a-pack.md:158
+msgid "In the game"
+msgstr ""
+
+#: manual/making-a-pack.md:160
+msgid "The picture takes effect only while the mod it names is enabled. If no enabled mod has the origin, or the mod has no such picture, or the size differs from the mod's picture, the picture is skipped. The pack manager counts it, and `Player.log` says why."
 msgstr ""

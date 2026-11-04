@@ -16,7 +16,7 @@ namespace TexturePacks
     {
         // The winning file for one scene texture. Counted: the pack's Used count has gone up for it already, so
         // loading the scene again does not count it twice.
-        sealed class Source { public PackKey Key; public Texture2D Texture; public Packs.Pack Pack; public bool Counted; }
+        sealed class Source { public AssetId Id; public Texture2D Texture; public Packs.Pack Pack; public bool Counted; }
 
         static readonly Dictionary<string, Source> sources = new Dictionary<string, Source>();
         // Copies of the game's pixels, by the texture they were taken from, to put back in Clear. Textures of a
@@ -43,9 +43,11 @@ namespace TexturePacks
             hooked = false;
         }
 
-        public static void Add(PackKey key, Texture2D texture, Packs.Pack pack)
+        // The sources are looked up by the texture's name and size (see Apply), so that is their key.
+        public static void Add(AssetId id, Texture2D texture, Packs.Pack pack)
         {
-            sources[key.Id] = new Source { Key = key, Texture = texture, Pack = pack };
+            Locator scene = id.Locator;
+            sources[AssetIdCodec.SceneName(scene.Path, scene.Width, scene.Height)] = new Source { Id = id, Texture = texture, Pack = pack };
         }
 
         // Puts every replaced texture back and forgets the sources.
@@ -85,8 +87,8 @@ namespace TexturePacks
             {
                 if (t == null || backups.ContainsKey(t)) continue;
                 Source src;
-                if (!sources.TryGetValue(PackKey.SceneId(t.name, t.width, t.height), out src) || src.Texture == t) continue;
-                if (Write(t, src)) done.Add(src.Key.Id);
+                if (!sources.TryGetValue(AssetIdCodec.SceneName(t.name, t.width, t.height), out src) || src.Texture == t) continue;
+                if (Write(t, src)) done.Add(src.Id.ToString());
             }
             if (done.Count > 0)
                 Debug.Log(TexturePacksMod.Tag + done.Count + " scene texture(s) replaced: " + string.Join(", ", done.ToArray()));
@@ -111,10 +113,10 @@ namespace TexturePacks
         static bool Write(Texture2D target, Source src)
         {
             var png = src.Texture;
-            string id = src.Pack.Id + "|" + src.Key.Id;
+            string id = src.Pack.Id + "|" + src.Id;
             if (png.width != target.width || png.height != target.height)
             {
-                Warn(id, src.Pack.Id + ": " + src.Key.Id + " skipped, the file is " + png.width + "x" + png.height);
+                Warn(id, src.Pack.Id + ": " + src.Id + " skipped, the file is " + png.width + "x" + png.height);
                 return false;
             }
             var format = target.format;
@@ -122,7 +124,7 @@ namespace TexturePacks
             if (!compress && format != TextureFormat.RGBA32 && format != TextureFormat.ARGB32 && format != TextureFormat.BGRA32 &&
                 format != TextureFormat.RGB24 && format != TextureFormat.Alpha8)
             {
-                Warn(id, src.Pack.Id + ": " + src.Key.Id + " skipped, the game stores it as " + format + ", which cannot be replaced");
+                Warn(id, src.Pack.Id + ": " + src.Id + " skipped, the game stores it as " + format + ", which cannot be replaced");
                 return false;
             }
             bool mips = target.mipmapCount > 1;
@@ -135,7 +137,7 @@ namespace TexturePacks
                 if (compress) staged.Compress(true);
                 if (staged.format != format || staged.mipmapCount != target.mipmapCount)
                 {
-                    Warn(id, src.Pack.Id + ": " + src.Key.Id + " skipped, could not match the game's " + format + " texture");
+                    Warn(id, src.Pack.Id + ": " + src.Id + " skipped, could not match the game's " + format + " texture");
                     return false;
                 }
                 backup = new Texture2D(target.width, target.height, format, mips);
@@ -148,7 +150,7 @@ namespace TexturePacks
             }
             catch (Exception e)
             {
-                Warn(id, src.Pack.Id + ": " + src.Key.Id + " skipped: " + e.Message);
+                Warn(id, src.Pack.Id + ": " + src.Id + " skipped: " + e.Message);
                 return false;
             }
             finally

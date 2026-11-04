@@ -60,16 +60,16 @@ msgid "Checks"
 msgstr "检查"
 
 #: manual/building.md:32
-msgid "It runs the decisions in `src/*.Pure.cs` headless, once on examples and once against plain reference models on generated input. When the game is installed and the mod is built, it also runs the game's mod scanner on the build. The mod passes when the scanner reports `capabilities: none` and no `HARD` line."
-msgstr "它先不启动游戏，直接运行 `src/*.Pure.cs` 里的判断逻辑：一遍用示例，一遍和朴素的参考模型对照，输入是随机生成的。如果装了游戏并且已经构建了模组，还会用游戏自己的模组扫描器检查构建结果。扫描器输出 `capabilities: none` 且没有 `HARD` 行，才算通过。"
+msgid "It runs the decisions in `src/*.Pure.cs` headless, once on examples and once against plain reference models on generated input. If Python is installed, it also runs `tests/schema_test.py`, which checks the schema script against the same file-name examples. When the game is installed and the mod is built, it runs the game's mod scanner on the build. The mod passes when the scanner reports `capabilities: none` and no `HARD` line."
+msgstr "它先不启动游戏，直接运行 `src/*.Pure.cs` 里的判断逻辑：一遍用示例，一遍和朴素的参考模型对照，输入是随机生成的。装了 Python 的话，还会运行 `tests/schema_test.py`，用同样的文件名示例检查 schema 脚本。装了游戏并且已经构建了模组时，会用游戏自己的模组扫描器检查构建结果。扫描器输出 `capabilities: none` 且没有 `HARD` 行，才算通过。"
 
 #: manual/building.md:34
 msgid "The creator kit"
 msgstr "制作工具包"
 
 #: manual/building.md:40
-msgid "This builds `Catalog.exe` and `PackBuilder.exe`, writes `catalog.tsv` and the placeholders, and zips the kit as `out/TexturePackKit.zip`. The kit holds no game art."
-msgstr "它会构建 `Catalog.exe` 和 `PackBuilder.exe`，写出 `catalog.tsv` 和占位图，再把工具包打成 `out/TexturePackKit.zip`。工具包里没有游戏美术资源。"
+msgid "This builds `Catalog.exe` and `PackBuilder.exe`, writes `catalog.tsv` and the placeholders, adds the schema script, the provider helper and an empty `schemas` folder, and zips the kit as `out/TexturePackKit.zip`. The kit holds no game art."
+msgstr "它会构建 `Catalog.exe` 和 `PackBuilder.exe`，写出 `catalog.tsv` 和占位图，加入 schema 脚本、提供方用的辅助文件和一个空的 `schemas` 文件夹，再把工具包打成 `out/TexturePackKit.zip`。工具包里没有游戏美术资源。"
 
 #: manual/building.md:42
 msgid "After a game update, refresh the inventory first:"
@@ -84,16 +84,165 @@ msgid "`tools/SpriteProbe/build.sh` builds a development mod that writes every s
 msgstr "`tools/SpriteProbe/build.sh` 构建一个开发用模组。它把游戏显示过的每张精灵图写进 `Player.log`，每张只写一次，并写明是哪个节点显示的。用它可以找出材质包能替换哪些图。它不是用来玩游戏的。`tools/SpriteProbe/build.sh --install` 会把它复制到游戏的 `Mods` 文件夹。"
 
 #: manual/building.md:53
+msgid "Sample Provider"
+msgstr "Sample Provider"
+
+#: manual/building.md:55
+msgid "`tools/SampleProvider/build.sh` builds a development mod that makes one sprite in code and offers it to packs, as a mod author would with `template/TexturePacksClient.cs`. It writes `out/sample_provider`. `tools/SampleProvider/build.sh --install` copies it to the game's `Mods` folder. [For mod authors](for-mod-authors.md#try-it-with-the-sample-provider) says how to use it."
+msgstr "`tools/SampleProvider/build.sh` 构建一个开发用模组。它在代码里生成一张精灵图并提供给材质包，模组作者用 `template/TexturePacksClient.cs` 也是这样做。构建结果写在 `out/sample_provider`。`tools/SampleProvider/build.sh --install` 会把它复制到游戏的 `Mods` 文件夹。用法见[给模组作者](for-mod-authors.md#try-it-with-the-sample-provider)。"
+
+#: manual/building.md:57
 msgid "Install by hand"
 msgstr "手动安装"
 
-#: manual/building.md:55
+#: manual/building.md:59
 msgid "Copy the folder `out/texture_packs` into the game's `Mods` folder, start the game, and enable the mod in the Mods menu. Mods load when the game starts, so restart after enabling or updating one."
 msgstr "把 `out/texture_packs` 文件夹复制到游戏的 `Mods` 文件夹，启动游戏，在模组菜单中启用这个模组。模组在游戏启动时加载，所以启用或更新后要重启游戏。"
 
-#: manual/building.md:57
+#: manual/building.md:61
 msgid "The mod declares no capabilities, so the game enables it without a permission prompt."
 msgstr "这个模组不申请任何权限，游戏启用它时不会弹出授权提示。"
+
+#: manual/for-mod-authors.md:1
+msgid "For mod authors"
+msgstr "给模组作者"
+
+#: manual/for-mod-authors.md:3
+msgid "If your mod adds items, papers or sprites, texture packs can replace them without any change to your mod's behaviour. This page says what you have to do, which is often nothing, and what you can do to make it work better."
+msgstr "如果你的模组添加了物品、纸张或精灵图，材质包不用改动你模组的行为，就能替换它们。本页说明你要做什么（多数时候什么都不用做），以及你还可以做些什么，让替换更可靠。"
+
+#: manual/for-mod-authors.md:5
+msgid "Items and Paper need nothing"
+msgstr "Items 和 Paper 里的图什么都不用做"
+
+#: manual/for-mod-authors.md:7
+msgid "The game decodes the PNG files in your mod's `Items` and `Paper` folders. A pack can replace each of them, with no code and no change in your mod. A pack file for `Items/crusher_body.png` in the mod `machine_mod` is named `machine_mod+Items~crusher_body.png`. The picture must have the size of yours. The shape of an item always comes from your picture, so a pack never changes which cells an item takes."
+msgstr "游戏会解码你模组 `Items` 和 `Paper` 文件夹里的 PNG。材质包可以替换其中的每一张，不需要写代码，也不用改你的模组。比如模组 `machine_mod` 里的 `Items/crusher_body.png`，材质包里对应的文件叫 `machine_mod+Items~crusher_body.png`。图片的尺寸必须和你的图一样。物品的形状始终取自你的图，所以材质包不会改变物品占哪些格子。"
+
+#: manual/for-mod-authors.md:9
+msgid "Add a UUID"
+msgstr "加上 UUID"
+
+#: manual/for-mod-authors.md:11
+msgid "Without a UUID, packs name your mod by its id. That works, but it cannot tell your mod from another mod with the same id, and a pack breaks if you rename the mod. A UUID is recommended."
+msgstr "没有 UUID 时，材质包用你的模组 ID 来指代你的模组。这样能用，但分不清你的模组和另一个 ID 相同的模组，你一改模组 ID，材质包也就失效了。建议加上 UUID。"
+
+#: manual/for-mod-authors.md:13
+msgid "Pick a UUID once and keep it for good, for example with `python -c \"import uuid; print(uuid.uuid4())\"`."
+msgstr "选定一个 UUID，从此不再更改。例如运行 `python -c \"import uuid; print(uuid.uuid4())\"` 生成一个。"
+
+#: manual/for-mod-authors.md:14
+msgid "Add a 1x1 picture named `Textures/origin.<uuid>.png` to your mod. The game decodes it, and Texture Packs reads the UUID from its name."
+msgstr "在你的模组里放一张 1x1 的标记图，命名为 `Textures/origin.<uuid>.png`。游戏会解码它，Texture Packs 从文件名里读出 UUID。"
+
+#: manual/for-mod-authors.md:15
+msgid "Add the same UUID to `manifest.xml`, for example `<AssetOrigin>3f2a9c1e-5b7d-4e2a-9c1e-0a1b2c3d4e5f</AssetOrigin>`. The game ignores this element. The schema script reads it and checks that it matches the marker picture."
+msgstr "把同一个 UUID 写进 `manifest.xml`，例如 `<AssetOrigin>3f2a9c1e-5b7d-4e2a-9c1e-0a1b2c3d4e5f</AssetOrigin>`。游戏会忽略这个元素。schema 脚本会读它，并检查它和标记图是否一致。"
+
+#: manual/for-mod-authors.md:17
+msgid "A mod with code can declare the UUID with `TexturePacksClient.DeclareOrigin` (below) instead of the marker picture. A pack then names your mod as `3f2a9c1e-5b7d-4e2a-9c1e-0a1b2c3d4e5f+Items~crusher_body.png`."
+msgstr "有代码的模组可以不放标记图，改用 `TexturePacksClient.DeclareOrigin`（见下文）声明 UUID。这时材质包把你的模组写成 `3f2a9c1e-5b7d-4e2a-9c1e-0a1b2c3d4e5f+Items~crusher_body.png`。"
+
+#: manual/for-mod-authors.md:19
+msgid "Pictures you make in code"
+msgstr "在代码里生成的图"
+
+#: manual/for-mod-authors.md:21
+msgid "A sprite from `Sprite.Create` or an asset bundle has no file in `Items` or `Paper`. To let packs replace it:"
+msgstr "`Sprite.Create` 或 asset bundle 生成的精灵图，在 `Items` 和 `Paper` 里没有对应的文件。要让材质包能替换它："
+
+#: manual/for-mod-authors.md:23
+msgid "Copy `TexturePacksClient.cs` into your mod. It is in `template/` in this repository and in `for-mod-authors/` in the creator kit. It needs no reference to Texture Packs."
+msgstr "把 `TexturePacksClient.cs` 复制进你的模组。本仓库的 `template/` 里有它，制作工具包的 `for-mod-authors/` 里也有。它不需要引用 Texture Packs。"
+
+#: manual/for-mod-authors.md:24
+msgid "Call `Offer` for each picture in `OnEnable`, and `Withdraw` in `OnDisable`:"
+msgstr "在 `OnEnable` 里为每张图调用 `Offer`，在 `OnDisable` 里调用 `Withdraw`："
+
+#: manual/for-mod-authors.md:35
+msgid "`DeclareOrigin` is optional. `Offer` takes your mod id, a container, the picture's name, your original sprite and a function, `apply`. The container is a word of letters, digits, `_` and `-`. The game decodes only `Items` and `Paper`, so use any other word for what you make in code, such as `Code`. If you offer a picture with the same container and name as a file in your `Items` folder, the offered one is used. A pack names the picture `<UUID or mod id>+<container>~<name>.png`, here `machine_mod+Code~spark.png`, and its file must have the size of your sprite."
+msgstr "`DeclareOrigin` 可以不调用。`Offer` 的参数依次是模组 ID、容器名、图片名、你的原始精灵图，以及一个函数 `apply`。容器名是由字母、数字、`_` 和 `-` 组成的一个词。游戏只解码 `Items` 和 `Paper`，所以代码里生成的图请用别的词，例如 `Code`。如果你提供的图和 `Items` 文件夹里的某个文件，容器名和图片名都相同，用的是你提供的那一张。材质包里这张图叫 `<UUID 或模组 ID>+<容器名>~<图片名>.png`，这里是 `machine_mod+Code~spark.png`，尺寸必须和你的精灵图一样。"
+
+#: manual/for-mod-authors.md:37
+msgid "Texture Packs calls `apply` with the pack's sprite, and later with your original sprite to put it back. You keep owning your objects. Texture Packs reads your list on every rebuild and again whenever your mod finishes loading, so it does not matter which mod starts first. Without Texture Packs, nothing reads what `Offer` publishes and your mod behaves as if the file were not there."
+msgstr "Texture Packs 调用 `apply` 时传入材质包的精灵图；要还原时，再传入你的原始精灵图。这些对象仍归你管理。Texture Packs 每次重建都会重新读你的列表，你的模组加载完成时也会读一次，所以两个模组谁先启动都无所谓。没装 Texture Packs 时，没有谁会去读 `Offer` 发布的内容，你的模组和没有这个文件时一样。"
+
+#: manual/for-mod-authors.md:39
+msgid "Texture Packs keeps `apply` and the sprites until its next rebuild or until your mod is disabled. The project's code standard forbids keeping objects of the store (`GameItem`, `PixelWindow`, `TreeNodeRender`, scene objects) after the player leaves it, so `apply` must not capture one. Keep the current sprite in a static field and let your own drawing code read it, as `current` above, or call `Withdraw` when the store is left."
+msgstr "Texture Packs 会一直拿着 `apply` 和精灵图，直到下一次重建，或你的模组被停用。项目的代码规范禁止玩家离开店铺后还留着店铺里的对象（`GameItem`、`PixelWindow`、`TreeNodeRender`、场景对象），所以 `apply` 里不能捕获这类对象。把当前精灵图存在静态字段里，让你自己的绘制代码去读，就像上面的 `current`；或者在离开店铺时调用 `Withdraw`。"
+
+#: manual/for-mod-authors.md:41
+#: manual/making-a-pack.md:111
+msgid "The schema"
+msgstr "schema"
+
+#: manual/for-mod-authors.md:43
+msgid "The schema lists every picture of your mod that a pack can replace, with its file name, size and your mod's version. Pack creators need it to export your pictures and to check their packs. Write it before each release and ship it in your mod's folder as `textures.schema.tsv`. The game never reads it."
+msgstr "schema 列出你模组里所有能被材质包替换的图，包括文件名、尺寸和你模组的版本。材质包作者需要它来导出你的图，并检查自己的材质包。每次发布前生成一份，命名为 `textures.schema.tsv`，放进模组文件夹一起发布。游戏从不读它。"
+
+#: manual/for-mod-authors.md:49
+msgid "The script is `schema/schema.py` in the creator kit and `tools/schema/schema.py` in this repository. It needs [Python](https://www.python.org/downloads/) 3.10 or newer, and Pillow (`requirements.txt` next to it) only if your pictures are JPG. It reads your files and never runs your code. `--out FILE` writes the schema somewhere else."
+msgstr "脚本是制作工具包里的 `schema/schema.py`，在本仓库里是 `tools/schema/schema.py`。它需要 [Python](https://www.python.org/downloads/) 3.10 或更高版本；只有图片是 JPG 时才需要 Pillow（旁边的 `requirements.txt`）。它只读你的文件，从不运行你的代码。`--out FILE` 可以把 schema 写到别处。"
+
+#: manual/for-mod-authors.md:51
+msgid "It lists:"
+msgstr "它会列出："
+
+#: manual/for-mod-authors.md:53
+msgid "the PNG and JPG files in `Items` and `Paper`, with their sizes;"
+msgstr "`Items` 和 `Paper` 里的 PNG 和 JPG 文件及其尺寸；"
+
+#: manual/for-mod-authors.md:54
+msgid "the pictures in `textures.extra.tsv`, a file you write next to `manifest.xml` for pictures made in code. Its first line names the columns, and each following line is one picture, with the columns separated by tabs: `container`, `name`, `width`, `height`;"
+msgstr "`textures.extra.tsv` 里的图。这个文件由你来写，放在 `manifest.xml` 旁边，用来列出代码里生成的图。第一行是列名，之后每行一张图，各列用制表符分隔：`container`、`name`、`width`、`height`；"
+
+#: manual/for-mod-authors.md:55
+msgid "except the pictures in `textures.exclude`, a file with one `container/name` per line."
+msgstr "不包括 `textures.exclude` 里列出的图。这个文件每行写一个 `container/name`。"
+
+#: manual/for-mod-authors.md:62
+msgid "The script takes the UUID from `<AssetOrigin>` and from the marker picture, and stops with an error when they differ. A mod without a UUID gets a warning, and the mod id is used. It also stops with an error for a name that no file name can spell, such as a container with a space or an empty name."
+msgstr "脚本从 `<AssetOrigin>` 和标记图里取 UUID，两者不一致就报错并停止。没有 UUID 的模组会收到警告，改用模组 ID。名字如果没法写成文件名，也会报错并停止，比如容器名里有空格，或者图片名是空的。"
+
+#: manual/for-mod-authors.md:64
+msgid "Pictures that live in an asset bundle are not read. List them in `textures.extra.tsv`."
+msgstr "asset bundle 里的图不会被读取，请把它们列进 `textures.extra.tsv`。"
+
+#: manual/for-mod-authors.md:66
+msgid "Try it with the sample provider"
+msgstr "用示例提供方试一试"
+
+#: manual/for-mod-authors.md:68
+msgid "`tools/SampleProvider` is a small mod that makes a 16x16 yellow square in code and offers it. It shows what a provider does and tests the whole path in the game."
+msgstr "`tools/SampleProvider` 是个小模组：它在代码里生成一块 16x16 的黄色方块，并把它提供出去。从中可以看到提供方要做什么，也能在游戏里测试整条流程。"
+
+#: manual/for-mod-authors.md:70
+msgid "Run `tools/SampleProvider/build.sh --install` and enable **Sample Provider (development)**. `Player.log` says `[SampleProvider] showing the yellow square`. Nothing else happens, and nothing fails, because Texture Packs is not there to read the offer."
+msgstr "运行 `tools/SampleProvider/build.sh --install`，然后启用 **Sample Provider (development)**。`Player.log` 里会有 `[SampleProvider] showing the yellow square`。别的什么都不会发生，也不会出错，因为没有 Texture Packs 去读它提供的图。"
+
+#: manual/for-mod-authors.md:71
+msgid "Enable Texture Packs and a pack with a 16x16 picture named `4b6f1f6c-2d6e-4a46-9f7e-5c1d2a7b8e90+Code~square.png`. Restart the game. `Player.log` now says `[SampleProvider] showing the pack's sprite`."
+msgstr "启用 Texture Packs，再启用一个材质包，包里有一张 16x16 的图，文件名为 `4b6f1f6c-2d6e-4a46-9f7e-5c1d2a7b8e90+Code~square.png`。重启游戏。这时 `Player.log` 里会有 `[SampleProvider] showing the pack's sprite`。"
+
+#: manual/for-mod-authors.md:73
+msgid "Switching the pack off in the pack manager and clicking Apply brings the yellow square back."
+msgstr "在材质包管理器里关掉这个材质包并点**应用**，黄色方块就回来了。"
+
+#: manual/for-mod-authors.md:75
+msgid "What is not supported"
+msgstr "不支持的内容"
+
+#: manual/for-mod-authors.md:77
+msgid "The schema script does not read asset bundles. List their pictures in `textures.extra.tsv`."
+msgstr "schema 脚本不读 asset bundle，请把其中的图列进 `textures.extra.tsv`。"
+
+#: manual/for-mod-authors.md:78
+msgid "You can offer sprites, not textures (`Texture2D`)."
+msgstr "只能提供精灵图，不能提供贴图（`Texture2D`）。"
+
+#: manual/for-mod-authors.md:79
+msgid "A pack cannot change an item's shape, only how it looks."
+msgstr "材质包不能改变物品的形状，只能改变它的样子。"
 
 #: manual/how-it-works.md:1
 msgid "How it works"
@@ -104,16 +253,16 @@ msgid "![How the loader and the creator kit fit together: the game's loader deco
 msgstr "![加载器和制作工具包如何配合：游戏的加载器解码材质包里的文件，文件名说明每张图替换什么，管理器里的顺序决定哪个材质包生效，每张图在使用前都会先检查](../attachments/texture-packs-architecture.zh_CN.png)"
 
 #: manual/how-it-works.md:5
-msgid "The left side of the diagram is the mod in the game. The right side is the [creator kit](making-a-pack.md). Dotted boxes are not part of the mod yet."
-msgstr "图的左半边是游戏里的模组，右半边是[制作工具包](making-a-pack.md)。虚线框还不属于这个模组。"
+msgid "The left side of the diagram is the mod in the game. The right side is the [creator kit](making-a-pack.md)."
+msgstr "图的左半边是游戏里的模组，右半边是[制作工具包](making-a-pack.md)。"
 
 #: manual/how-it-works.md:7
 msgid "Finding the packs"
 msgstr "找到材质包"
 
 #: manual/how-it-works.md:9
-msgid "A pack is an enabled mod that lists `texture_packs` among its prerequisites. The game's loader has already decoded every PNG in the pack's `Textures` folder, so Texture Packs reads nothing from disk. It reads the packs again each time a pack's assets finish loading, after Apply, and when you enable the mod from the Mods menu after start-up."
-msgstr "材质包是已启用的模组，它的前置模组里有 `texture_packs`。游戏的加载器已经解码了材质包 `Textures` 文件夹里的每个 PNG，所以 Texture Packs 不会再读磁盘。每当有材质包的资源加载完成、点击应用，或在启动后从模组菜单启用本模组时，它都会重新读一遍材质包。"
+msgid "A pack is an enabled mod that lists `texture_packs` among its prerequisites. The game's loader has already decoded every PNG in the pack's `Textures` folder, so Texture Packs reads nothing from disk. It reads the packs again each time a pack's assets finish loading, each time a mod finishes loading that a pack has pictures for (they exist from then on, whichever of the two finished first), after Apply, and when you enable the mod from the Mods menu after start-up."
+msgstr "材质包是已启用的模组，它的前置模组里有 `texture_packs`。游戏的加载器已经解码了材质包 `Textures` 文件夹里的每个 PNG，所以 Texture Packs 不会再读磁盘。下面几种时候，它会重新读一遍材质包：有材质包的资源加载完成；某个模组加载完成，而材质包里有它的图（从那时起这些图才存在，两个模组谁先加载完都一样）；点击应用；以及在启动之后从模组菜单启用本模组。"
 
 #: manual/how-it-works.md:11
 msgid "What a file name means"
@@ -143,51 +292,180 @@ msgstr "Resources 里的单张精灵图 `window/machinery/bevel_frame`"
 msgid "The whole scene texture `store_mid` of that size"
 msgstr "场景贴图 `store_mid` 中这个尺寸的那一张"
 
+#: manual/how-it-works.md:20
+msgid "The picture `crusher_body` in the `Items` folder of the mod with the id `machine_mod`"
+msgstr "模组 ID 为 `machine_mod` 的模组，`Items` 文件夹里的图 `crusher_body`"
+
 #: manual/how-it-works.md:21
+msgid "The picture `note` in the `Paper` folder of the mod that declared that UUID"
+msgstr "声明了这个 UUID 的模组，`Paper` 文件夹里的图 `note`"
+
+#: manual/how-it-works.md:23
 msgid "Scene textures carry their size in the name because several share a name. `wall`, for example, is 960x540 in the shop and 640x360 in the run summary. A PNG whose name is none of these is not a replacement, and the game keeps its own picture. A pack may hold such files."
 msgstr "场景贴图的文件名带尺寸，因为有几张贴图同名。例如 `wall` 在店铺里是 960x540，在结算画面里是 640x360。文件名不属于以上任何一种的 PNG 不会替换任何东西，游戏继续用自己的图。材质包里可以放这样的文件。"
 
-#: manual/how-it-works.md:23
+#: manual/how-it-works.md:25
+msgid "A picture of a mod is written as origin, `+`, container, `~`, name:"
+msgstr "模组的图按“来源、`+`、容器名、`~`、图片名”的顺序书写："
+
+#: manual/how-it-works.md:27
+msgid "The origin is the mod's UUID or, for a mod without one, its mod id. A UUID may be written in any case and is read as lower case."
+msgstr "来源是模组的 UUID；没有 UUID 的模组写模组 ID。UUID 大小写都可以写，读取时一律按小写处理。"
+
+#: manual/how-it-works.md:28
+msgid "The container is one word of letters, digits, `_` and `-`. `Items` and `Paper` are the two folders the game decodes. A mod that makes sprites in code may use any other word."
+msgstr "容器名是由字母、数字、`_` 和 `-` 组成的一个词。游戏只解码 `Items` 和 `Paper` 这两个文件夹。在代码里生成精灵图的模组可以用别的词。"
+
+#: manual/how-it-works.md:29
+msgid "The name is everything after the first `~`: the file name in the mod's folder without its extension."
+msgstr "图片名是第一个 `~` 之后的全部内容，也就是这张图在模组文件夹里不带扩展名的文件名。"
+
+#: manual/how-it-works.md:31
+msgid "No mod id, UUID or game picture contains a `+`, so the first `+` always ends the origin, and a name with a `+` in it is never a picture of the game."
+msgstr "模组 ID、UUID 和游戏自己的图名里都不会出现 `+`，所以第一个 `+` 一定是来源的结尾，带 `+` 的文件名也一定不是游戏的图。"
+
+#: manual/how-it-works.md:33
+msgid "Identity"
+msgstr "身份"
+
+#: manual/how-it-works.md:35
+msgid "Every replaceable picture has an identity of two values. The origin says where the picture comes from: the game, or one mod. The locator says where it is inside the origin: for the game a sprite in a Resources atlas, a single Resources sprite or a scene texture, for a mod an asset in a container. An identity pairs only what exists: the game has no mod assets, and a mod has no Resources sprites."
+msgstr "每张可以替换的图都有一个由两个值组成的身份。来源说明图从哪里来：游戏，或者某一个模组。定位说明图在来源里的什么位置：游戏的图是 Resources 图集里的一张精灵图、Resources 里的单张精灵图，或者一张场景贴图；模组的图是某个容器里的一份资源。身份只配对确实存在的组合：游戏没有模组资源，模组也没有 Resources 精灵图。"
+
+#: manual/how-it-works.md:37
+msgid "The identity is not one string, because everything that decides something compares identities: the order of the packs, the check for two files with the same target, and the numbers in the pack manager. With a string, each of those would have to take the name apart again, and the spelling of the file name would become a format they all depend on. The file name is only how an identity is written on disk. One class, `AssetIdCodec`, reads and writes it. The pack builder is compiled with the same class, so the builder and the game read a name the same way. The codec never gives two identities one name, and reading a name it wrote gives back the same identity."
+msgstr "身份不是一个字符串，因为所有需要做判断的地方比较的都是身份：材质包的顺序、检查两个文件是否指向同一个目标，还有材质包管理器里的数字。如果用字符串，这些地方都得各自把名字再拆一遍，文件名的写法也会变成它们全都依赖的格式。文件名只是身份写在磁盘上的样子。读写它的只有一个类，`AssetIdCodec`。打包工具编译时带上了同一个类，所以打包工具和游戏读同一个名字，结果相同。编解码器不会让两个身份用同一个文件名，把它写出的名字读回来，得到的也还是原来的身份。"
+
+#: manual/how-it-works.md:39
+msgid "The origin of a mod"
+msgstr "模组的来源"
+
+#: manual/how-it-works.md:41
+msgid "Texture Packs reads no files of other mods. It learns a mod's origin in this order:"
+msgstr "Texture Packs 不读其他模组的文件。它按下面的顺序得知一个模组的来源："
+
+#: manual/how-it-works.md:43
+msgid "The mod's code declares a UUID (`TexturePacksClient.DeclareOrigin`, see [For mod authors](for-mod-authors.md))."
+msgstr "模组的代码声明了 UUID（`TexturePacksClient.DeclareOrigin`，见[给模组作者](for-mod-authors.md)）。"
+
+#: manual/how-it-works.md:44
+msgid "The mod carries a 1x1 marker picture `Textures/origin.<uuid>.png`. The game decodes it into the mod's `LoadedMod.Textures` under the key `origin.<uuid>`, and Texture Packs looks for that key."
+msgstr "模组带有 1x1 的标记图 `Textures/origin.<uuid>.png`。游戏把它解码进模组的 `LoadedMod.Textures`，键是 `origin.<uuid>`，Texture Packs 找的就是这个键。"
+
+#: manual/how-it-works.md:45
+msgid "The mod's id."
+msgstr "模组 ID。"
+
+#: manual/how-it-works.md:47
+msgid "A declaration from code wins over a marker. If they name different UUIDs, or a mod has several markers, `Player.log` gets one warning. If two enabled mods end up with the same origin, the first is used and the second gets a warning. `manifest.xml` may also carry the UUID as `<AssetOrigin>`. The game keeps only its own fixed fields and ignores that element, so Texture Packs cannot read it. The [schema script](for-mod-authors.md#the-schema) does, and checks that it agrees with the marker."
+msgstr "代码里的声明优先于标记图。两者的 UUID 不同，或者一个模组有好几张标记图，`Player.log` 里会有一条警告。如果两个已启用的模组来源相同，用第一个，第二个会有一条警告。`manifest.xml` 里也可以用 `<AssetOrigin>` 写 UUID。游戏只保留自己固定的字段，会忽略这个元素，所以 Texture Packs 读不到它。[schema 脚本](for-mod-authors.md#the-schema)会读，并检查它和标记图是否一致。"
+
+#: manual/how-it-works.md:49
+msgid "The mod id works, but it is a weaker name. Two mods can have the same id, and a mod can be renamed. A UUID the author picks once survives both, and a local copy of the mod and its Workshop copy share it. A pack written for the UUID keeps working through all of these."
+msgstr "用模组 ID 也行，但这个名字不够牢靠：两个模组可能 ID 相同，模组也可能改名。UUID 由作者一次选定，这两种情况都不受影响，本地副本和创意工坊副本也共用同一个 UUID。按 UUID 写的材质包，在这些情况下都继续有效。"
+
+#: manual/how-it-works.md:51
+#: manual/making-a-pack.md:107
+msgid "Pictures of other mods"
+msgstr "其他模组的图"
+
+#: manual/how-it-works.md:53
+msgid "The game decodes the PNG files in a mod's `Items` folder into `LoadedMod.Sprites` and the files in `Paper` into `LoadedMod.PaperSprites`, under the file name without `.png`. Whoever needs the sprite looks it up there each time: `GameItemElement.ResolveSpriteByName` for items, `CustomUIManager.GetModSprite` for icons, `PaperAssets.FromMod` for papers. Texture Packs replaces the entry with a sprite made from the pack's picture. Every reader gets it, and none of them needs a patch."
+msgstr "游戏把模组 `Items` 文件夹里的 PNG 解码进 `LoadedMod.Sprites`，把 `Paper` 里的文件解码进 `LoadedMod.PaperSprites`，键是不带 `.png` 的文件名。谁要用这张精灵图，每次都到这里查：物品是 `GameItemElement.ResolveSpriteByName`，图标是 `CustomUIManager.GetModSprite`，纸张是 `PaperAssets.FromMod`。Texture Packs 把这个条目换成用材质包的图做成的精灵图。所有读取方拿到的都是它，它们都不需要补丁。"
+
+#: manual/how-it-works.md:55
+msgid "The new sprite has the original's size, pivot, pixels per unit and border, so the picture must have exactly the original's size. The original goes back into the dictionary when the pack is switched off, when a rebuild no longer picks the picture, and when Texture Packs is disabled."
+msgstr "新精灵图沿用原图的尺寸、中心点、每单位像素数和边框，所以图片必须和原图尺寸完全一致。材质包被关掉、重建后不再选这张图，或者 Texture Packs 被停用时，原图会放回字典。"
+
+#: manual/how-it-works.md:57
+msgid "An item's shape stays as it was, for the same reason as for the game's own items. It comes from the sprite's transparency, which `GameItem.SetSpriteAndShapeFromMod` reads from the dictionary when the item is made. That method is patched: while it runs, the original is back in the dictionary, and afterwards the pack's sprite returns. A pack changes how a mod's item looks and never which cells it takes."
+msgstr "物品的形状保持不变，原因和游戏自己的物品一样：形状取决于精灵图的透明度，而 `GameItem.SetSpriteAndShapeFromMod` 在创建物品时从字典里读取这张图。这个方法被打了补丁：它运行期间，字典里放回的是原图，运行结束后再换回材质包的精灵图。材质包只改变模组物品的外观，不会改变它占哪些格子。"
+
+#: manual/how-it-works.md:59
+msgid "The provider bridge"
+msgstr "提供方桥接"
+
+#: manual/how-it-works.md:61
+msgid "A mod that makes sprites in code (`Sprite.Create`, an asset bundle) has no file in `Items` for Texture Packs to replace. Such a mod, a provider, publishes a list of its pictures in two slots of the `AppDomain`, which every mod's assembly shares:"
+msgstr "在代码里生成精灵图（`Sprite.Create`、asset bundle）的模组，在 `Items` 里没有文件可供 Texture Packs 替换。这样的模组叫提供方（provider），它把自己的图的列表发布在 `AppDomain` 的两个数据槽里，所有模组的程序集共用同一个 `AppDomain`："
+
+#: manual/how-it-works.md:63
+msgid "Slot"
+msgstr "数据槽"
+
+#: manual/how-it-works.md:63
+msgid "Holds"
+msgstr "内容"
+
+#: manual/how-it-works.md:65
+msgid "A function that returns one row per picture: container, name, the original sprite and an `apply` function"
+msgstr "一个函数，每张图返回一行：容器名、图片名、原始精灵图和一个 `apply` 函数"
+
+#: manual/how-it-works.md:66
+msgid "The mod's UUID, if it declares one"
+msgstr "模组的 UUID（如果声明了）"
+
+#: manual/how-it-works.md:68
+msgid "Texture Packs reads the slots on every rebuild and writes nothing back. It also rebuilds when a provider finishes loading. So it does not matter which of the two mods starts first, and a provider works the same when Texture Packs is not installed: nothing reads its slots. `apply` receives the pack's sprite, and later the original, to put it back. The provider keeps owning its sprites. If a picture is offered from code and also exists in the mod's `Items` folder, the one from code is used."
+msgstr "Texture Packs 每次重建都会读这两个数据槽，不会往里写任何东西。提供方加载完成时它也会重建。所以两个模组谁先启动都无所谓；没装 Texture Packs 时，提供方照常工作，只是没有谁去读它的数据槽。`apply` 收到的是材质包的精灵图，之后要还原时收到的是原图。精灵图仍归提供方管理。如果同一张图既由代码提供，模组的 `Items` 文件夹里又有，用代码提供的那张。"
+
+#: manual/how-it-works.md:70
+msgid "The slots stand in for an API assembly that every provider would share. The game resolves a mod's assembly references only inside that mod's own folder, so another mod would not find a `TexturePacks.Api.dll` that ships with Texture Packs. Instead, a provider copies `template/TexturePacksClient.cs` into its own code. It has three calls, `DeclareOrigin`, `Offer` and `Withdraw`, and needs no reference to Texture Packs. Only sprites can be offered, not textures."
+msgstr "数据槽代替了一个所有提供方共用的 API 程序集。游戏只在模组自己的文件夹里解析它的程序集引用，所以别的模组找不到随 Texture Packs 发布的 `TexturePacks.Api.dll`。因此提供方改为把 `template/TexturePacksClient.cs` 复制到自己的代码里。里面有三个调用：`DeclareOrigin`、`Offer` 和 `Withdraw`，不需要引用 Texture Packs。只能提供精灵图，不能提供贴图。"
+
+#: manual/how-it-works.md:72
+msgid "Texture Packs keeps each `apply` function and the sprites it was given until the next rebuild or until the provider is disabled. The code standard forbids keeping objects of the store (`GameItem`, `PixelWindow`, `TreeNodeRender`, scene objects) after the player leaves it, so `apply` must not capture one. Keep the current sprite in a static field that the drawing code reads, or call `Withdraw` when the store is left."
+msgstr "Texture Packs 会一直拿着每个 `apply` 函数和收到的精灵图，直到下一次重建，或提供方被停用。代码规范禁止玩家离开店铺后还留着店铺里的对象（`GameItem`、`PixelWindow`、`TreeNodeRender`、场景对象），所以 `apply` 里不能捕获这类对象。把当前精灵图存在静态字段里，让绘制代码去读；或者在离开店铺时调用 `Withdraw`。"
+
+#: manual/how-it-works.md:74
 msgid "Which pack wins"
 msgstr "哪个材质包生效"
 
-#: manual/how-it-works.md:25
-msgid "For each picture, every switched-on pack that has a file for it is a candidate, the highest in the list first. A candidate the game cannot use is rejected before the order is considered: an unknown name or a wrong size. The first usable candidate wins. The usable ones below it count as covered."
-msgstr "对每张图，所有已开启、并且带有对应文件的材质包都是候选，列表中靠上的排在前面。游戏用不了的候选，也就是名字不存在或尺寸不对的，会先被剔除，再看顺序。第一个可用的候选生效。它下面可用的候选记为被覆盖。"
+#: manual/how-it-works.md:76
+msgid "For each picture, every switched-on pack that has a file for it is a candidate, the highest in the list first. A candidate the game cannot use is rejected before the order is considered: an unknown name, a mod that is not enabled or has no such picture, or a wrong size. The first usable candidate wins. The usable ones below it count as covered."
+msgstr "每张图都有一批候选：所有已开启、并且带有对应文件的材质包，列表里靠上的排在前面。游戏用不了的候选，在比较顺序之前就被剔除：名字不存在、模组没有启用或没有这张图，或者尺寸不对。第一个可用的候选生效，它下面可用的算作被覆盖。"
 
-#: manual/how-it-works.md:27
+#: manual/how-it-works.md:78
 msgid "Sprites"
 msgstr "精灵图"
 
-#: manual/how-it-works.md:29
+#: manual/how-it-works.md:80
 msgid "Nearly every sprite reaches the game through `RenderHandler`. A postfix on `RenderHandler.LoadFromAtlasRaw` (which `LoadFromAtlas` and `TryLoadFromAtlas` call) and on `RenderHandler.LoadFromFile` swaps the game's sprite for the pack's. The new sprite has the original's size, pivot, pixels per unit and nine-slice border, so the game lays it out as before."
 msgstr "几乎所有精灵图都经过 `RenderHandler` 进入游戏。`RenderHandler.LoadFromAtlasRaw`（`LoadFromAtlas` 和 `TryLoadFromAtlas` 都会调用它）和 `RenderHandler.LoadFromFile` 上各有一个 postfix 补丁，把游戏的精灵图换成材质包里的。新精灵图沿用原图的尺寸、中心点、每单位像素数和九宫格边框，所以游戏的排版和以前一样。"
 
-#: manual/how-it-works.md:31
+#: manual/how-it-works.md:82
 msgid "`RenderHandler` keeps the window frame and grid sprites in fields it fills once. Texture Packs sets those fields again after every apply and after `RenderHandler.Awake`."
 msgstr "`RenderHandler` 把窗口边框和格子的精灵图放在只填一次的字段里。每次应用之后，以及 `RenderHandler.Awake` 之后，Texture Packs 都会把这些字段重新设一遍。"
 
-#: manual/how-it-works.md:33
+#: manual/how-it-works.md:84
 msgid "Item shapes come from the transparency of the item's sprite. `GameItem.BuildShapeFromSprite` is patched to see the game's original, so a pack changes how an item looks and never which cells it takes."
 msgstr "物品的形状取决于物品精灵图的透明度。`GameItem.BuildShapeFromSprite` 被打了补丁，读到的始终是游戏原图，所以材质包只改变物品的外观，不会改变它占哪些格子。"
 
-#: manual/how-it-works.md:35
+#: manual/how-it-works.md:86
 msgid "Scene textures"
 msgstr "场景贴图"
 
-#: manual/how-it-works.md:37
+#: manual/how-it-works.md:88
 msgid "Backgrounds, fixtures, portraits and most of the interface are textures stored in the scene files. They do not pass through `RenderHandler`. After every scene load, Texture Packs copies the pack's pixels into the game's texture on the graphics card. Every sprite, animation frame and portrait cut from that texture changes at once. The original is kept aside and put back when the packs change or the mod is disabled."
 msgstr "背景、陈设、肖像和大部分界面是存在场景文件里的贴图，不经过 `RenderHandler`。每次场景加载后，Texture Packs 把材质包的像素复制到显卡里游戏自己的贴图上。从这张贴图上切出来的所有精灵图、动画帧和肖像会同时改变。原图会另外留一份，材质包有变动或模组被停用时放回去。"
 
-#: manual/how-it-works.md:39
+#: manual/how-it-works.md:90
 msgid "The sizes must match exactly. A texture the game stores compressed as DXT1 or DXT5 is compressed again at run time to match. Other compressed formats cannot be replaced, and a graphics device that cannot copy textures keeps the game's pictures. Each case writes one warning to `Player.log`."
 msgstr "尺寸必须完全一致。游戏里以 DXT1 或 DXT5 压缩存放的贴图，会在运行时按同样的格式重新压缩。其他压缩格式无法替换。显卡不支持复制贴图时，保留游戏原图。这几种情况各会在 `Player.log` 里写一条警告。"
 
-#: manual/how-it-works.md:41
+#: manual/how-it-works.md:92
+msgid "Tests"
+msgstr "测试"
+
+#: manual/how-it-works.md:94
+msgid "`tests/run.sh` checks the identity, the file-name codec and the choice of a mod's origin without the game. `tests/PureTest.cs` holds examples. `tests/DiffTest.cs` generates names and checks that each reads back as the identity it was written from and that no two identities share a name. `tests/schema_test.py` builds a small mod in a temporary folder and checks that the schema script spells file names as the C# codec does, using the same examples. The run ends with the game's own mod scanner on the build."
+msgstr "`tests/run.sh` 不用游戏就能检查身份、文件名编解码器和模组来源的选择。`tests/PureTest.cs` 是示例；`tests/DiffTest.cs` 生成文件名，检查每个名字读回来都是写出它的那个身份，并且没有两个身份共用一个名字。`tests/schema_test.py` 在临时文件夹里搭一个小模组，用同样的示例检查 schema 脚本写出的文件名和 C# 编解码器一致。最后用游戏自己的模组扫描器检查构建结果。"
+
+#: manual/how-it-works.md:96
 msgid "The saved order"
 msgstr "保存的顺序"
 
-#: manual/how-it-works.md:43
+#: manual/how-it-works.md:98
 msgid "The order is one line in the config, top first, each pack marked `+` (on) or `-` (off), for example `+hd_items;-old_ui;+dark_shop`. A `%` or `;` inside a pack id is written as `%25` or `%3B`."
 msgstr "顺序在配置里只占一行，排在最上面的在最前，每个材质包带一个标记：`+` 是开，`-` 是关，例如 `+hd_items;-old_ui;+dark_shop`。材质包 id 里的 `%` 和 `;` 写成 `%25` 和 `%3B`。"
 
@@ -208,78 +486,82 @@ msgid "Texture Packs lets mods replace the game's pictures. A texture pack is a 
 msgstr "Texture Packs 让模组可以替换游戏里的图片。材质包是只装图片的小模组，Texture Packs 把这些图片换到游戏原有图片的位置上：物品、窗口和按钮、店铺和里面的陈设、顾客，还有新游戏界面。"
 
 #: manual/index.md:10
+msgid "A pack can also replace pictures that other mods add to the game, such as the items and papers of a gameplay mod. The mod's author does not have to change anything for that, and a mod that makes its sprites in code can offer them too. A pack names such a picture by the mod's id or UUID, and it only takes effect while that mod is enabled. See [For mod authors](for-mod-authors.md) and [Making a texture pack](making-a-pack.md#pictures-of-other-mods)."
+msgstr "材质包也可以替换其他模组加进游戏的图，比如玩法模组的物品和纸张。模组作者不用为此改任何东西；自己在代码里生成精灵图的模组也可以主动提供。材质包用模组的 ID 或 UUID 指明这样的图，并且只在那个模组已启用时才生效。见[给模组作者](for-mod-authors.md)和[制作材质包](making-a-pack.md#pictures-of-other-mods)。"
+
+#: manual/index.md:12
 msgid "A pack replaces only the pictures it holds. The game's own pictures stay everywhere else. You can install several packs. Where two of them replace the same picture, the one higher in your list wins."
 msgstr "材质包只替换它自己带的图片，其余的仍然用游戏原图。可以同时装多个材质包。两个材质包替换同一张图时，列表里靠上的那个生效。"
 
-#: manual/index.md:12
+#: manual/index.md:14
 msgid "Using packs"
 msgstr "使用材质包"
 
-#: manual/index.md:14
+#: manual/index.md:16
 msgid "Put the pack's folder in the game's `Mods` folder."
 msgstr "把材质包的文件夹放进游戏的 `Mods` 文件夹。"
 
-#: manual/index.md:15
+#: manual/index.md:17
 msgid "Enable **Texture Packs** and the pack in the Mods menu, and restart the game."
 msgstr "在模组菜单中启用 **Texture Packs** 和这个材质包，然后重启游戏。"
 
-#: manual/index.md:16
+#: manual/index.md:18
 msgid "Click the settings button of Texture Packs in the Mods menu. It opens the pack manager."
 msgstr "在模组菜单里点 Texture Packs 的设置按钮，打开材质包管理器。"
 
-#: manual/index.md:18
+#: manual/index.md:20
 msgid "The pack manager lists the installed packs, the top one first. Each row has:"
 msgstr "材质包管理器列出已安装的材质包，排在最上面的在最前。每一行有："
 
-#: manual/index.md:20
+#: manual/index.md:22
 msgid "a switch, to turn the pack off without uninstalling it;"
 msgstr "一个开关，可以关掉材质包而不用卸载；"
 
-#: manual/index.md:21
+#: manual/index.md:23
 msgid "the pack's icon, if it has one, and a tooltip with its name, version, author, description and number of pictures;"
 msgstr "材质包的图标（有的话），以及一条提示，写着名称、版本、作者、说明和图片数量；"
 
-#: manual/index.md:22
+#: manual/index.md:24
 msgid "the number of its pictures in use, the number left out because a pack higher up replaces the same picture, and the number skipped;"
 msgstr "生效的图片数、因上面的材质包替换了同一张图而被盖住的图片数，以及被跳过的图片数；"
 
-#: manual/index.md:23
+#: manual/index.md:25
 msgid "**Up** and **Down**, to move the pack one place."
 msgstr "**上移**和**下移**，把材质包移动一位。"
 
-#: manual/index.md:25
+#: manual/index.md:27
 msgid "Changes wait until you click **Apply**. Apply saves the order and puts the packs in place at once, without a restart. **Close** or Escape drops changes you did not apply."
 msgstr "改动要点**应用**后才生效。应用会保存顺序，并立即把材质包换上，不用重启。点**关闭**或按 Esc 会丢掉没有应用的改动。"
 
-#: manual/index.md:27
+#: manual/index.md:29
 msgid "A new pack starts on top and switched on. A pack that is no longer installed keeps its place in the saved order, so it returns to the same place when you install it again."
 msgstr "新装的材质包排在最上面，并且是开启的。已经卸载的材质包在保存的顺序里仍保留位置，再装回来时回到原来的位置。"
 
-#: manual/index.md:29
+#: manual/index.md:31
 msgid "Skipped pictures"
 msgstr "被跳过的图片"
 
-#: manual/index.md:31
-msgid "A picture is skipped when the game has no picture of that name, or when its size differs from the game's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it."
-msgstr "游戏里没有这个名字的图，或者图片尺寸和游戏原图不同，这张图就会被跳过。材质包管理器会统计数量，`Player.log` 会逐个写出文件名和原因。排在上面的材质包里有一张坏图，不会挡住下面材质包里的好图。"
-
 #: manual/index.md:33
+msgid "A picture is skipped when the game has no picture of that name, when no enabled mod has the picture it names, or when its size differs from the original's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it."
+msgstr "游戏里没有这个名字的图、没有已启用的模组带有它指明的图，或者图片尺寸和原图不同，这张图就会被跳过。材质包管理器会统计数量，`Player.log` 会逐个写出文件名和原因。排在上面的材质包里有一张坏图，不会挡住下面材质包里的好图。"
+
+#: manual/index.md:35
 msgid "Settings"
 msgstr "设置"
 
-#: manual/index.md:35
+#: manual/index.md:37
 msgid "The pack manager is the only setting. The order and the switches are saved in the mod's config file as one entry, `packs`."
 msgstr "唯一的设置就是材质包管理器。顺序和开关作为一个条目 `packs` 保存在模组的配置文件里。"
 
-#: manual/index.md:37
+#: manual/index.md:39
 msgid "Compatibility"
 msgstr "兼容性"
 
-#: manual/index.md:39
-msgid "Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite` and `ModConfigWindow.Open`. See [How it works](how-it-works.md)."
-msgstr "Texture Packs 不需要任何特殊权限。它给 `RenderHandler.LoadFromAtlasRaw`、`RenderHandler.LoadFromFile`、`RenderHandler.Awake`、`GameItem.BuildShapeFromSprite` 和 `ModConfigWindow.Open` 打了补丁。详见[工作原理](how-it-works.md)。"
-
 #: manual/index.md:41
+msgid "Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite`, `GameItem.SetSpriteAndShapeFromMod` and `ModConfigWindow.Open`. See [How it works](how-it-works.md)."
+msgstr "Texture Packs 不需要任何特殊权限。它给 `RenderHandler.LoadFromAtlasRaw`、`RenderHandler.LoadFromFile`、`RenderHandler.Awake`、`GameItem.BuildShapeFromSprite`、`GameItem.SetSpriteAndShapeFromMod` 和 `ModConfigWindow.Open` 打了补丁。见[工作原理](how-it-works.md)。"
+
+#: manual/index.md:43
 msgid "To make a pack, see [Making a texture pack](making-a-pack.md)."
 msgstr "制作材质包请看[制作材质包](making-a-pack.md)。"
 
@@ -327,154 +609,271 @@ msgstr "把你的图片文件夹打成游戏能加载的材质包，并顺手检
 msgid "The empty file every pack carries (see below)."
 msgstr "每个材质包都要带的空文件（见下文）。"
 
-#: manual/making-a-pack.md:17
-msgid "The kit holds no game art. You get the original pictures from your own game with the export script, and you should not share them: only your own pictures go into a pack."
-msgstr "工具包里没有游戏美术资源。原图要用导出脚本从你自己的游戏里取，请不要分享：材质包里只能放你自己画的图。"
+#: manual/making-a-pack.md:16
+msgid "Where you put the schemas of mods whose pictures you replace. `PackBuilder.exe` reads every `*.schema.tsv` in it."
+msgstr "放你要替换其图的那些模组的 schema。`PackBuilder.exe` 会读取这个文件夹里的每一个 `*.schema.tsv`。"
 
-#: manual/making-a-pack.md:19
+#: manual/making-a-pack.md:17
+msgid "A script that writes a mod's schema, for mods that do not ship one."
+msgstr "一个生成模组 schema 的脚本，用于没有附带 schema 的模组。"
+
+#: manual/making-a-pack.md:18
+msgid "A file for mod authors who make sprites in code. You do not need it."
+msgstr "给在代码里生成精灵图的模组作者用的文件，你用不到。"
+
+#: manual/making-a-pack.md:20
+msgid "The kit holds no game art. You get the original pictures from your own game with the export script, and you should not share them: only your own pictures go into a pack. The same goes for the pictures of other mods."
+msgstr "工具包里没有游戏美术资源。原图要用导出脚本从你自己的游戏里取出，请不要分享它们：材质包里只能放你自己画的图。其他模组的图也一样。"
+
+#: manual/making-a-pack.md:22
 msgid "1. Export the game's pictures"
 msgstr "1. 导出游戏的图片"
 
-#: manual/making-a-pack.md:21
+#: manual/making-a-pack.md:24
 msgid "The export script reads the game's files directly; the game does not need to run. It needs [Python](https://www.python.org/downloads/) 3.10 or newer."
 msgstr "导出脚本直接读游戏文件，不需要运行游戏。它需要 [Python](https://www.python.org/downloads/) 3.10 或更高版本。"
 
-#: manual/making-a-pack.md:23
+#: manual/making-a-pack.md:26
 msgid "Open a terminal in the kit's `export` folder and install what the script uses:"
 msgstr "在工具包的 `export` 文件夹里打开终端，安装脚本用到的包："
 
-#: manual/making-a-pack.md:29
+#: manual/making-a-pack.md:32
 msgid "Export, giving the game folder:"
 msgstr "导出时指定游戏文件夹："
 
-#: manual/making-a-pack.md:35
+#: manual/making-a-pack.md:38
 msgid "Everything in the catalog is written: about 1,800 pictures. `--only item` (or `ui`, `scene`, `character`, `new-game`) exports one category. Files already there are kept; `--overwrite` writes them again, for example after a game update."
 msgstr "清单里的所有图片都会写出来，约 1800 张。`--only item`（或 `ui`、`scene`、`character`、`new-game`）只导出一个类别。已有的文件会保留；`--overwrite` 会重新写入，比如游戏更新之后。"
 
-#: manual/making-a-pack.md:37
+#: manual/making-a-pack.md:40
 msgid "The pictures land sorted the same way as the placeholders:"
 msgstr "导出的图片和占位图按同样的方式分类："
 
-#: manual/making-a-pack.md:39
+#: manual/making-a-pack.md:42
 msgid "Folder"
 msgstr "文件夹"
 
-#: manual/making-a-pack.md:39
+#: manual/making-a-pack.md:42
 msgid "What is in it"
 msgstr "里面有什么"
 
-#: manual/making-a-pack.md:41
+#: manual/making-a-pack.md:44
 msgid "Every item, one file per item picture"
 msgstr "每件物品，每张物品图一个文件"
 
-#: manual/making-a-pack.md:42
+#: manual/making-a-pack.md:45
 msgid "What the magnifier shows when appraising: letters, seals, chips, burger layers, prosthetic hands, and the magnifier itself"
 msgstr "鉴定时放大镜里看到的内容：信件、防伪标、芯片、汉堡的各层、义肢手，还有放大镜本身"
 
-#: manual/making-a-pack.md:43
+#: manual/making-a-pack.md:46
 msgid "Check cards and the guide pictures that show an item's details"
 msgstr "检查卡，以及展示物品细节的指南图片"
 
-#: manual/making-a-pack.md:44
+#: manual/making-a-pack.md:47
 msgid "The full-screen body of a tool when it is open: scanners, the labeler"
 msgstr "工具打开后占满屏幕的主体：扫描仪、标签打印机"
 
-#: manual/making-a-pack.md:45
+#: manual/making-a-pack.md:48
 msgid "Window frames and grid cells"
 msgstr "窗口边框和格子"
 
-#: manual/making-a-pack.md:46
+#: manual/making-a-pack.md:49
 msgid "Buttons, panels, papers, the phone and tablet screens"
 msgstr "按钮、面板、纸张、电话和平板电脑的屏幕"
 
-#: manual/making-a-pack.md:47
+#: manual/making-a-pack.md:50
 msgid "Whole backgrounds"
 msgstr "整幅背景"
 
-#: manual/making-a-pack.md:48
+#: manual/making-a-pack.md:51
 msgid "The main menu backgrounds and the run-summary picture"
 msgstr "主菜单背景和结算画面图片"
 
-#: manual/making-a-pack.md:49
+#: manual/making-a-pack.md:52
 msgid "The shop's walls, doors, windows, floor and lights, as layers"
 msgstr "店铺的墙、门、窗、地板和灯，分层存放"
 
-#: manual/making-a-pack.md:50
+#: manual/making-a-pack.md:53
 msgid "What stands in the shop: phone, radio, calendar, display cases, the trash can, vending machines, the wires that light up"
 msgstr "店里摆的东西：电话、收音机、日历、展示柜、垃圾桶、自动售货机，以及会亮起的线缆"
 
-#: manual/making-a-pack.md:51
+#: manual/making-a-pack.md:54
 msgid "People walking past, desk and tape animations"
 msgstr "路过的人、桌面和胶带动画"
 
-#: manual/making-a-pack.md:52
+#: manual/making-a-pack.md:55
 msgid "Every customer portrait and clothing layer"
 msgstr "每张顾客肖像和服装图层"
 
-#: manual/making-a-pack.md:53
+#: manual/making-a-pack.md:56
 msgid "Specializations, perk icons and the new-game screens"
 msgstr "专精、特性图标和新游戏界面"
 
-#: manual/making-a-pack.md:55
+#: manual/making-a-pack.md:58
 msgid "2. Draw"
 msgstr "2. 画图"
 
-#: manual/making-a-pack.md:57
+#: manual/making-a-pack.md:60
 msgid "Change any picture you like and leave the rest out: a pack only needs the files it replaces."
 msgstr "想改哪张就改哪张，其余的不用管：材质包只需要带它替换的文件。"
 
-#: manual/making-a-pack.md:59
+#: manual/making-a-pack.md:62
 msgid "**Keep the size.** A picture must be exactly as wide and as tall as the game's. The size is in `catalog.tsv` and in every scene file name (`store_mid.960x540.png`). A picture of another size is left out."
 msgstr "**尺寸不能变。** 图片的宽和高必须和游戏原图完全一样。尺寸写在 `catalog.tsv` 里，也写在每个场景图的文件名里（`store_mid.960x540.png`）。尺寸不同的图会被丢掉。"
 
-#: manual/making-a-pack.md:60
+#: manual/making-a-pack.md:63
 msgid "**Keep the name.** The file name says what is replaced. Item and window pictures look like `items~items_tool2@blender.png`; scene pictures like `wall.960x540.png`. Use the names in `catalog.tsv` exactly, including lower case."
 msgstr "**文件名不能变。** 文件名决定替换什么。物品和窗口图形如 `items~items_tool2@blender.png`，场景图形如 `wall.960x540.png`。请严格按 `catalog.tsv` 里的名字写，包括小写。"
 
-#: manual/making-a-pack.md:61
+#: manual/making-a-pack.md:64
 msgid "**Pictures with several frames** (walking people, customer clothing, icon sheets) are replaced as a whole. Keep each frame where it was."
 msgstr "**有多帧的图**（走路的人、顾客服装、图标表）整张替换。每一帧要留在原来的位置。"
 
-#: manual/making-a-pack.md:62
+#: manual/making-a-pack.md:65
 msgid "**Perk icons are white.** The game colours them itself, so draw them in white and change the shape."
 msgstr "**特性图标是白色的。** 游戏自己会给它们上色，所以请用白色绘制，只改形状。"
 
-#: manual/making-a-pack.md:63
+#: manual/making-a-pack.md:66
 msgid "**Item shapes do not change.** Which cells an item takes comes from the game's picture, whatever your pack draws."
 msgstr "**物品形状不会变。** 物品占哪些格子由游戏原图决定，不管你的材质包画成什么样。"
 
-#: manual/making-a-pack.md:64
+#: manual/making-a-pack.md:67
 msgid "**Appraisal close-ups go with the item.** If you redraw an item that can be appraised, redraw its close-ups too, or the magnifier shows the old one."
 msgstr "**鉴定特写跟着物品走。** 重画了可以鉴定的物品，也要重画它的特写图，否则放大镜里还是旧图。"
 
-#: manual/making-a-pack.md:65
+#: manual/making-a-pack.md:68
 msgid "**A pack icon is optional.** A file named `pack.png`, of any size, is shown next to your pack in the pack manager. It replaces no picture of the game."
 msgstr "**图标可有可无。** 名为 `pack.png`、尺寸不限的文件，会显示在材质包管理器里你的材质包旁边。它不替换游戏里的任何图。"
 
-#: manual/making-a-pack.md:67
+#: manual/making-a-pack.md:70
 msgid "You can keep your work in the category folders; the pack builder flattens them."
 msgstr "可以把自己的作品留在分类文件夹里，打包工具会把它们摊平。"
 
-#: manual/making-a-pack.md:69
+#: manual/making-a-pack.md:72
 msgid "3. Build the pack"
 msgstr "3. 打包"
 
-#: manual/making-a-pack.md:75
+#: manual/making-a-pack.md:78
 msgid "The builder copies every PNG under your folder into the pack's `Textures` folder. It first deletes the PNG files already in that folder, so the pack holds exactly what is in your folder. It writes `TexturePack.dll` if the pack has none, and a `manifest.xml` if the pack has none. It stops without writing anything if two files share a name or a size is wrong, and notes any name that is not in the catalog."
 msgstr "打包工具把你文件夹下的所有 PNG 复制到材质包的 `Textures` 文件夹里。复制之前，它会先删掉该文件夹里已有的 PNG，所以材质包里的内容和你的文件夹完全一致。材质包里没有 `TexturePack.dll` 时它会写入，没有 `manifest.xml` 时也会写入。两个文件重名，或有尺寸不对的图，它就停下，什么也不写；文件名不在清单里的，它会提示。"
 
-#: manual/making-a-pack.md:77
+#: manual/making-a-pack.md:80
 msgid "Open `manifest.xml` and fill in the name, author and description. Two lines must stay as they are:"
 msgstr "打开 `manifest.xml`，填上名称、作者和说明。有两处必须保持原样："
 
-#: manual/making-a-pack.md:88
+#: manual/making-a-pack.md:91
 msgid "The game only loads a mod that has code, so every pack carries `TexturePack.dll`, which does nothing. Every pack can use the same copy."
 msgstr "游戏只加载带代码的模组，所以每个材质包都带一个什么也不做的 `TexturePack.dll`。所有材质包可以用同一份。"
 
-#: manual/making-a-pack.md:90
+#: manual/making-a-pack.md:93
 msgid "4. Try it"
 msgstr "4. 试一试"
 
-#: manual/making-a-pack.md:92
+#: manual/making-a-pack.md:95
 msgid "Enable **Texture Packs** and your pack in the Mods menu and restart. To change the order of several packs, or to switch one off, use the [pack manager](index.md#using-packs). The game's log (`Player.log`) has a `[TexturePacks]` line that lists each pack with the number of pictures used, covered and skipped. Every skipped picture has its own warning that says why. When a scene loads, another line lists the scene pictures that were replaced. The pack manager shows the same numbers."
 msgstr "在模组菜单中启用 **Texture Packs** 和你的材质包，然后重启游戏。要调整多个材质包的顺序，或关掉某一个，请用[材质包管理器](index.md#using-packs)。游戏日志（`Player.log`）里有一行以 `[TexturePacks]` 开头，列出每个材质包生效、被覆盖和被跳过的图片数。每张被跳过的图都有单独一条警告，说明原因。场景加载时，还有一行列出替换了的场景图。材质包管理器显示的是同样的数字。"
+
+#: manual/making-a-pack.md:97
+msgid "Looking at a pack without the game"
+msgstr "不启动游戏，查看材质包"
+
+#: manual/making-a-pack.md:99
+msgid "The repository has a preview that lays out the shop as the game does and puts a folder of your pictures into it, so a picture can be judged in the scene before the game starts. The shop is a stack of sprites, each with a sorting order and a position; the preview reads them from your copy of the game and draws them in that order."
+msgstr "仓库里有一个预览工具，它像游戏一样摆好店面，再把你的图片放进去，这样不用启动游戏，就能在场景里判断一张图画得怎么样。店面是一叠精灵，每个精灵有排序值和位置；预览从你的游戏文件里读出它们，按这个顺序画出来。"
+
+#: manual/making-a-pack.md:105
+msgid "`--compare` puts the game's own picture above yours. `--hide ShutterDoor` leaves a layer out (here, to see the room behind the serving window), `--list` prints the layers in drawing order, and `--scale 2` enlarges the result. A picture of a size the game does not use is left out and listed. The preview shows the shop view only. It does not draw the customer, the text or the game's lighting effects, so it is for looking at a pack, not a copy of the game's screen. It needs [Python](https://www.python.org/downloads/) and the packages in `tools/export/requirements.txt`."
+msgstr "`--compare` 把游戏自己的图放在你的图上面。`--hide ShutterDoor` 隐藏一个图层（这里是为了看到服务窗口后面的房间），`--list` 按绘制顺序列出所有图层，`--scale 2` 把结果放大。尺寸和游戏不一致的图会被略过，并列在输出里。预览只画店面视图，不画客人、文字和游戏的光照效果，所以它是用来看材质包的，不是游戏画面的复制品。它需要 [Python](https://www.python.org/downloads/) 和 `tools/export/requirements.txt` 里的包。"
+
+#: manual/making-a-pack.md:109
+msgid "A pack can also replace the pictures that other mods add: items, papers, and sprites a mod makes in code. The mod does not have to know about your pack, but you need its schema to name and size your pictures."
+msgstr "材质包也可以替换其他模组加进游戏的图：物品、纸张，以及模组在代码里生成的精灵图。模组不需要知道你的材质包，但你需要它的 schema，才能给图命名、确定尺寸。"
+
+#: manual/making-a-pack.md:113
+msgid "A schema is a file, `textures.schema.tsv`, that lists every picture of one mod that a pack can replace. It has the first eight columns of `catalog.tsv` (`file`, `kind`, `category`, `group`, `width`, `height`, `source`, `name`), then `origin`, `container` and `version`. For a mod picture, `file` is the name your file must have, `group` is the mod id and `version` is the mod's version."
+msgstr "schema 是一个文件，`textures.schema.tsv`，列出某个模组里所有能被材质包替换的图。它的前八列和 `catalog.tsv` 相同（`file`、`kind`、`category`、`group`、`width`、`height`、`source`、`name`），后面是 `origin`、`container` 和 `version`。对模组的图来说，`file` 是你的文件必须使用的名字，`group` 是模组 ID，`version` 是模组的版本。"
+
+#: manual/making-a-pack.md:115
+msgid "If the mod's author ships a schema, it is in the mod's folder."
+msgstr "如果模组作者随模组发布了 schema，它就在模组文件夹里。"
+
+#: manual/making-a-pack.md:116
+msgid "If not, write one. Run the script from the kit on the mod's folder; it reads the files and does not run the mod: `python schema\\schema.py \"<game>\\Mods\\machine_mod\"`. It lists the pictures in the mod's `Items` and `Paper` folders. Pictures that the mod makes in code, or keeps in an asset bundle, are not found. Ask the author to list them."
+msgstr "没有的话，自己生成一份。对着模组的文件夹运行工具包里的脚本；它只读文件，不运行模组：`python schema\\schema.py \"<game>\\Mods\\machine_mod\"`。它会列出模组 `Items` 和 `Paper` 文件夹里的图。模组在代码里生成的图，或放在 asset bundle 里的图，脚本找不到，请让作者把它们列出来。"
+
+#: manual/making-a-pack.md:117
+msgid "Put the schema in the kit's `schemas` folder, or pass it to the tools with `--schema` as below."
+msgstr "把 schema 放进工具包的 `schemas` 文件夹，或者像下面那样用 `--schema` 传给工具。"
+
+#: manual/making-a-pack.md:119
+msgid "The file name"
+msgstr "文件名"
+
+#: manual/making-a-pack.md:121
+msgid "A mod's picture is named `<origin>+<container>~<name>.png`. Copy it from the `file` column of the schema, for example:"
+msgstr "模组的图叫 `<origin>+<container>~<name>.png`。从 schema 的 `file` 列复制它，例如："
+
+#: manual/making-a-pack.md:127
+msgid "The origin is the mod's UUID. A mod without a UUID is named by its mod id, as in `machine_mod+Items~crusher_body.png`. The picture must have exactly the size in the schema. [How it works](how-it-works.md#what-a-file-name-means) explains the parts of the name."
+msgstr "来源是模组的 UUID。没有 UUID 的模组用模组 ID 命名，如 `machine_mod+Items~crusher_body.png`。图片的尺寸必须和 schema 里的完全一致。名字各部分的含义见[工作原理](how-it-works.md#what-a-file-name-means)。"
+
+#: manual/making-a-pack.md:129
+msgid "Export the mod's pictures"
+msgstr "导出模组的图"
+
+#: manual/making-a-pack.md:131
+msgid "Give the export script the schemas. `--schema FILE` adds one mod and can be repeated. `--mods DIR` adds every `*/textures.schema.tsv` in a Mods folder:"
+msgstr "把 schema 交给导出脚本。`--schema FILE` 加入一个模组，可以重复使用。`--mods DIR` 加入 Mods 文件夹里每一个 `*/textures.schema.tsv`："
+
+#: manual/making-a-pack.md:137
+msgid "The pictures go into `mod/<mod id>/` in the output folder. The script copies each picture from the mod's own `Items` or `Paper` folder, next to the schema. For a picture with no file there, it writes a flat grey rectangle of the right size. `--only mod` exports only the mods' pictures. The game's export is the same as without these options."
+msgstr "这些图放在输出文件夹的 `mod/<mod id>/` 里。脚本从 schema 旁边、模组自己的 `Items` 或 `Paper` 文件夹里复制每张图。那里没有文件的图，脚本写一个尺寸正确的纯灰矩形。`--only mod` 只导出模组的图。不加这些选项时，游戏图的导出和以前完全一样。"
+
+#: manual/making-a-pack.md:139
+msgid "Build the pack"
+msgstr "打包"
+
+#: manual/making-a-pack.md:141
+msgid "Give PackBuilder the same schemas:"
+msgstr "把同样的 schema 交给 PackBuilder："
+
+#: manual/making-a-pack.md:147
+msgid "`--schema` can be repeated. PackBuilder also reads every `*.schema.tsv` in the `schemas` folder next to it. It checks your mod pictures by what they replace, not by how the name is spelled, and reports:"
+msgstr "`--schema` 可以重复使用。PackBuilder 还会读它旁边 `schemas` 文件夹里的每一个 `*.schema.tsv`。它按图要替换的对象来检查你的模组图，而不看名字怎么拼写，并给出这些提示："
+
+#: manual/making-a-pack.md:149
+msgid "Message"
+msgstr "提示"
+
+#: manual/making-a-pack.md:149
+msgid "What it means"
+msgstr "含义"
+
+#: manual/making-a-pack.md:151
+msgid "The size is wrong. The message gives the size in the schema and the mod version the schema was written for. The build stops."
+msgstr "尺寸不对。提示里给出 schema 里的尺寸，以及这份 schema 对应的模组版本。构建会停止。"
+
+#: manual/making-a-pack.md:152
+msgid "The mod has a UUID, and the file names it by its id. The message shows the file name to use."
+msgstr "模组有 UUID，而文件用模组 ID 来指代它。提示里会给出该用的文件名。"
+
+#: manual/making-a-pack.md:153
+msgid "No schema lists this picture. The mod may be newer or older than the schema, or you gave no schema for it. The file is still copied."
+msgstr "没有任何 schema 列出这张图。可能是模组比 schema 新或旧，也可能是你没有给这个模组的 schema。文件照样会复制。"
+
+#: manual/making-a-pack.md:154
+msgid "Two files are one picture, for example the same UUID written in upper and lower case. The build stops."
+msgstr "两个文件指的是同一张图，比如同一个 UUID 一个写成大写、一个写成小写。构建会停止。"
+
+#: manual/making-a-pack.md:156
+msgid "When a mod's update changes a picture's size, rewrite its schema and run PackBuilder again: it lists the pictures to redraw."
+msgstr "模组更新后如果改了某张图的尺寸，请重新生成它的 schema 再运行 PackBuilder：它会列出需要重画的图。"
+
+#: manual/making-a-pack.md:158
+msgid "In the game"
+msgstr "在游戏里"
+
+#: manual/making-a-pack.md:160
+msgid "The picture takes effect only while the mod it names is enabled. If no enabled mod has the origin, or the mod has no such picture, or the size differs from the mod's picture, the picture is skipped. The pack manager counts it, and `Player.log` says why."
+msgstr "只有图所指的模组已启用时，这张图才会生效。没有已启用的模组带有这个来源，或者模组没有这张图，或者尺寸和模组的图不同，这张图就会被跳过。材质包管理器会统计数量，`Player.log` 会说明原因。"
+

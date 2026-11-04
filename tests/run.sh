@@ -20,6 +20,14 @@ for f in src/*.Pure.cs; do pure+=("$(basename "$f")"); done
 echo "-- differential tests"
 ( cd "$WORK" && "$CSC" -nologo -optimize+ -out:DiffTest.exe DiffTest.cs "${pure[@]}" >/dev/null && ./DiffTest.exe )
 
+# The schema script (tools/schema/schema.py), when Python is available: its file-name spelling must equal the C# codec's.
+echo "-- schema script tests"
+if python -c "import sys" >/dev/null 2>&1; then
+  python -I tests/schema_test.py 2>/dev/null
+else
+  echo "Python not found: schema script tests skipped"
+fi
+
 if [ -f "$M/Assembly-CSharp.dll" ] && [ -f out/texture_packs/TexturePacks.dll ]; then
   refs=()
   for r in mscorlib netstandard System System.Core Assembly-CSharp; do refs+=("-r:$M/$r.dll"); done

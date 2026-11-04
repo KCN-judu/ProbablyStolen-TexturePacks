@@ -29,7 +29,7 @@ Two environment variables override the defaults:
 tests/run.sh
 ```
 
-It runs the decisions in `src/*.Pure.cs` headless, once on examples and once against plain reference models on generated input. When the game is installed and the mod is built, it also runs the game's mod scanner on the build. The mod passes when the scanner reports `capabilities: none` and no `HARD` line.
+It runs the decisions in `src/*.Pure.cs` headless, once on examples and once against plain reference models on generated input. If Python is installed, it also runs `tests/schema_test.py`, which checks the schema script against the same file-name examples. When the game is installed and the mod is built, it runs the game's mod scanner on the build. The mod passes when the scanner reports `capabilities: none` and no `HARD` line.
 
 ## The creator kit
 
@@ -37,7 +37,7 @@ It runs the decisions in `src/*.Pure.cs` headless, once on examples and once aga
 tools/kit.sh
 ```
 
-This builds `Catalog.exe` and `PackBuilder.exe`, writes `catalog.tsv` and the placeholders, and zips the kit as `out/TexturePackKit.zip`. The kit holds no game art.
+This builds `Catalog.exe` and `PackBuilder.exe`, writes `catalog.tsv` and the placeholders, adds the schema script, the provider helper and an empty `schemas` folder, and zips the kit as `out/TexturePackKit.zip`. The kit holds no game art.
 
 After a game update, refresh the inventory first:
 
@@ -49,6 +49,10 @@ tools/kit.sh
 ## Sprite Probe
 
 `tools/SpriteProbe/build.sh` builds a development mod that writes every sprite the game shows to `Player.log`, once, with the node that showed it. It helps to find what a pack can replace. It is not meant for play. `tools/SpriteProbe/build.sh --install` copies it to the game's `Mods` folder.
+
+## Sample Provider
+
+`tools/SampleProvider/build.sh` builds a development mod that makes one sprite in code and offers it to packs, as a mod author would with `template/TexturePacksClient.cs`. It writes `out/sample_provider`. `tools/SampleProvider/build.sh --install` copies it to the game's `Mods` folder. [For mod authors](for-mod-authors.md#try-it-with-the-sample-provider) says how to use it.
 
 ## Install by hand
 

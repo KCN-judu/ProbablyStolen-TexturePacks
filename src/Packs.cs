@@ -7,7 +7,7 @@ using UnityEngine;
 namespace TexturePacks
 {
     // Finds the installed texture packs and builds one replacement sprite for every original sprite the switched-on
-    // ones cover; whole scene textures are handed to SceneTextures.
+    // ones cover; whole scene textures are handed to SceneTextures, and pictures of other mods to ExternalAssets.
     //
     // A pack is an enabled mod that lists this mod among its prerequisites. The game has already decoded its
     // Textures folder into LoadedMod.Textures, so nothing is read from disk here. The packs are applied in the
@@ -29,7 +29,7 @@ namespace TexturePacks
         }
 
         // One pack's file for one picture, kept while the candidates for it are compared.
-        sealed class Source { public PackKey Key; public Texture2D Texture; public Pack Pack; }
+        sealed class Source { public AssetId Id; public Texture2D Texture; public Pack Pack; }
 
         public const string IconName = "pack";
 
@@ -39,6 +39,8 @@ namespace TexturePacks
         static readonly Dictionary<Sprite, Sprite> byOriginal = new Dictionary<Sprite, Sprite>();
         static readonly List<Sprite> retired = new List<Sprite>();
         static readonly List<Pack> installed = new List<Pack>();
+        // The mods the switched-on packs have files for (their origins), as of the last Rebuild.
+        static readonly HashSet<Origin> referenced = new HashSet<Origin>();
 
         // False until the first Rebuild, and again after Clear: the patches then pass the game's sprites through.
         public static bool Ready { get; private set; }
@@ -47,6 +49,14 @@ namespace TexturePacks
         public static IList<Pack> Installed { get { return installed; } }
 
         public static Pack Find(string id) { return installed.FirstOrDefault(p => p.Id == id); }
+
+        // Whether a switched-on pack has files for this mod. Its pictures exist once the mod has finished loading, so
+        // the packs are applied again then (TexturePacksMod.OnModAssetsLoaded), whichever finished first.
+        public static bool Refers(LoadedMod mod)
+        {
+            Origin origin = ModOrigins.OriginOf(mod);
+            return origin != null && referenced.Contains(origin);
+        }
 
         // While set, the game's loaders return the originals (see the patches in TexturePacksMod).
         public static int Bypass;
@@ -75,8 +85,11 @@ namespace TexturePacks
                 installed.Add(Describe(mod));
             }
 
+            // Which mod has which origin, and what the mods offer from code, for the pictures of other mods.
+            ExternalAssets.Begin();
+
             // Every switched-on pack's file for each picture, highest priority first.
-            var candidates = new Dictionary<string, List<Source>>();
+            var candidates = new Dictionary<AssetId, List<Source>>();
             var order = Settings.ApplyOrder(installed.Select(p => p.Id).ToList());
             order.Reverse();
             foreach (var id in order)
@@ -84,11 +97,12 @@ namespace TexturePacks
                 var pack = Find(id);
                 foreach (var t in mods[id].Textures)
                 {
-                    var key = PackKey.Parse(t.Key);
+                    var key = AssetIdCodec.Parse(t.Key);
                     if (key == null || t.Value == null) continue;
                     List<Source> list;
-                    if (!candidates.TryGetValue(key.Id, out list)) candidates[key.Id] = list = new List<Source>();
-                    list.Add(new Source { Key = key, Texture = t.Value, Pack = pack });
+                    if (!candidates.TryGetValue(key, out list)) candidates[key] = list = new List<Source>();
+                    list.Add(new Source { Id = key, Texture = t.Value, Pack = pack });
+                    if (key.Origin.IsMod) referenced.Add(key.Origin);
                 }
             }
 
@@ -98,13 +112,15 @@ namespace TexturePacks
             {
                 foreach (var list in candidates.Values)
                 {
-                    var key = list[0].Key;
-                    Sprite original = key.IsSceneTexture ? null : Original(key);
+                    var id = list[0].Id;
+                    if (id.Origin.IsMod) { ApplyExternal(list); continue; }
+                    Locator key = id.Locator;
+                    Sprite original = key.IsScene ? null : Original(key);
                     var r = PackResolve.Choose(list, src => Usable(src, original));
                     foreach (var src in r.Covered) src.Pack.Covered++;
                     foreach (var src in r.Rejected) { src.Pack.Skipped++; Warn(src, Problem(src, original)); }
                     if (!r.HasWinner) continue;
-                    if (key.IsSceneTexture) { SceneTextures.Add(key, r.Winner.Texture, r.Winner.Pack); continue; }
+                    if (key.IsScene) { SceneTextures.Add(id, r.Winner.Texture, r.Winner.Pack); continue; }
                     byOriginal[original] = Make(original, r.Winner.Texture);
                     r.Winner.Pack.Used++;
                 }
@@ -114,7 +130,7 @@ namespace TexturePacks
             SceneTextures.Apply();
 
             Debug.Log(TexturePacksMod.Tag + installed.Count + " pack(s), " + byOriginal.Count + " sprite(s) replaced, " +
-                SceneTextures.Count + " scene texture(s) in use" +
+                SceneTextures.Count + " scene texture(s) in use, " + ExternalAssets.Count + " picture(s) of other mods replaced" +
                 (installed.Count > 0 ? ": " + string.Join(", ", installed.Select(Summary).ToArray()) : ""));
             ApplyToRenderHandler();
         }
@@ -137,7 +153,7 @@ namespace TexturePacks
             {
                 if (t.Value == null) continue;
                 if (t.Key == IconName) icon = t.Value;
-                else if (PackKey.Parse(t.Key) != null) textures++;
+                else if (AssetIdCodec.Parse(t.Key) != null) textures++;
             }
             return new Pack
             {
@@ -153,6 +169,8 @@ namespace TexturePacks
             foreach (var s in byOriginal.Values) if (s != null) retired.Add(s);
             byOriginal.Clear();
             SceneTextures.Clear();
+            ExternalAssets.Clear(retired);
+            referenced.Clear();
             installed.Clear();
             Ready = false;
         }
@@ -168,20 +186,45 @@ namespace TexturePacks
         // only known once their scene loads, so that part is checked there (SceneTextures).
         static bool Usable(Source src, Sprite original)
         {
-            if (src.Key.IsSceneTexture) return src.Texture.width == src.Key.Width && src.Texture.height == src.Key.Height;
+            Locator key = src.Id.Locator;
+            if (key.IsScene) return src.Texture.width == key.Width && src.Texture.height == key.Height;
             return original != null && SameSize(src.Texture, original);
+        }
+
+        // The pictures of one other mod: the highest usable file wins and goes where the mod keeps its picture.
+        // Same rules as for the game's own sprites (check first, then priority), with the mod's sprite as the original.
+        static void ApplyExternal(List<Source> list)
+        {
+            var id = list[0].Id;
+            ExternalTarget target = ExternalAssets.Find(id);
+            Sprite original = target == null ? null : target.Original;
+            var r = PackResolve.Choose(list, src => original != null && SameSize(src.Texture, original));
+            foreach (var src in r.Covered) src.Pack.Covered++;
+            foreach (var src in r.Rejected)
+            {
+                src.Pack.Skipped++;
+                Warn(src, original == null ? ExternalAssets.Missing(id) : SizeProblem(src, original));
+            }
+            if (r.HasWinner && ExternalAssets.Replace(target, Make(original, r.Winner.Texture))) r.Winner.Pack.Used++;
         }
 
         // The reason a file was rejected, for the warning in Player.log.
         static string Problem(Source src, Sprite original)
         {
-            if (src.Key.IsSceneTexture || original != null)
+            Locator key = src.Id.Locator;
+            if (key.IsScene || original != null)
             {
-                int w = src.Key.IsSceneTexture ? src.Key.Width : Mathf.RoundToInt(original.rect.width);
-                int h = src.Key.IsSceneTexture ? src.Key.Height : Mathf.RoundToInt(original.rect.height);
+                int w = key.IsScene ? key.Width : Mathf.RoundToInt(original.rect.width);
+                int h = key.IsScene ? key.Height : Mathf.RoundToInt(original.rect.height);
                 return "is " + src.Texture.width + "x" + src.Texture.height + ", the game's picture is " + w + "x" + h;
             }
             return "no such sprite in the game";
+        }
+
+        static string SizeProblem(Source src, Sprite original)
+        {
+            return "is " + src.Texture.width + "x" + src.Texture.height + ", the mod's picture is " +
+                Mathf.RoundToInt(original.rect.width) + "x" + Mathf.RoundToInt(original.rect.height);
         }
 
         static bool SameSize(Texture2D texture, Sprite original)
@@ -192,11 +235,11 @@ namespace TexturePacks
 
         // The game's own sprite for a key, or null when there is none. The loaders can throw for a name that is not
         // in the atlas, and a pack may name anything, so every failure means "no such sprite".
-        static Sprite Original(PackKey key)
+        static Sprite Original(Locator key)
         {
             try
             {
-                return key.IsAtlas ? RenderHandler.TryLoadFromAtlas(key.Path, key.Sprite) : Resources.Load<Sprite>(key.Path);
+                return key.IsAtlas ? RenderHandler.TryLoadFromAtlas(key.Path, key.Name) : Resources.Load<Sprite>(key.Path);
             }
             catch (Exception) { return null; }
         }
@@ -220,8 +263,8 @@ namespace TexturePacks
         static readonly HashSet<string> warned = new HashSet<string>();
         static void Warn(Source src, string why)
         {
-            if (warned.Add(src.Pack.Id + "|" + src.Key.Id))
-                Debug.LogWarning(TexturePacksMod.Tag + src.Pack.Id + ": " + src.Key.Id + " skipped, " + why);
+            if (warned.Add(src.Pack.Id + "|" + src.Id))
+                Debug.LogWarning(TexturePacksMod.Tag + src.Pack.Id + ": " + src.Id + " skipped, " + why);
         }
 
         // RenderHandler keeps the window frame and grid sprites in fields it fills once, straight from Resources.

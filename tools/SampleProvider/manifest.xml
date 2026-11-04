@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Manifest>
+  <ID>sample_provider</ID>
+  <Name>Sample Provider (development)</Name>
+  <Author>KCN-judu</Author>
+  <ModVersion>0.1.0</ModVersion>
+  <Description>Development tool for Texture Packs. Makes one sprite in code and offers it to texture packs, to check that a pack can replace a picture of another mod. Not meant for play.</Description>
+  <GameVersions>
+    <Version>0.46D</Version>
+  </GameVersions>
+  <Prerequisites />
+  <Assemblies>
+    <Assembly>SampleProvider.dll</Assembly>
+  </Assemblies>
+  <Capabilities />
+</Manifest>

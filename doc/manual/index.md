@@ -7,6 +7,8 @@
 
 Texture Packs lets mods replace the game's pictures. A texture pack is a small mod that holds pictures. Texture Packs puts them in place of the game's own: items, windows and buttons, the shop and its fixtures, the customers and the new-game screens.
 
+A pack can also replace pictures that other mods add to the game, such as the items and papers of a gameplay mod. The mod's author does not have to change anything for that, and a mod that makes its sprites in code can offer them too. A pack names such a picture by the mod's id or UUID, and it only takes effect while that mod is enabled. See [For mod authors](for-mod-authors.md) and [Making a texture pack](making-a-pack.md#pictures-of-other-mods).
+
 A pack replaces only the pictures it holds. The game's own pictures stay everywhere else. You can install several packs. Where two of them replace the same picture, the one higher in your list wins.
 
 ## Using packs
@@ -28,7 +30,7 @@ A new pack starts on top and switched on. A pack that is no longer installed kee
 
 ## Skipped pictures
 
-A picture is skipped when the game has no picture of that name, or when its size differs from the game's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it.
+A picture is skipped when the game has no picture of that name, when no enabled mod has the picture it names, or when its size differs from the original's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it.
 
 ## Settings
 
@@ -36,6 +38,6 @@ The pack manager is the only setting. The order and the switches are saved in th
 
 ## Compatibility
 
-Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite` and `ModConfigWindow.Open`. See [How it works](how-it-works.md).
+Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite`, `GameItem.SetSpriteAndShapeFromMod` and `ModConfigWindow.Open`. See [How it works](how-it-works.md).
 
 To make a pack, see [Making a texture pack](making-a-pack.md).
