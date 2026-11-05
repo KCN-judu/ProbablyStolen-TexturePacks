@@ -10,6 +10,10 @@ Subscribe on the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedet
 
 Part of the [Probably Stolen mods collection](https://github.com/KCN-judu/ProbablyStolen-Mods).
 
+## Packs
+
+[Medieval Tavern](https://github.com/KCN-judu/ProbablyStolen-MedievalTavern) (early access) redraws the whole game as a timber-framed medieval tavern. It covers almost every picture a pack can replace, and its repository, with the code that draws it, is a complete example of a pack.
+
 ## Making a pack
 
 See [Making a texture pack](doc/manual/making-a-pack.md). The creator kit (`tools/kit.sh`) holds the catalog of every picture a pack can replace, placeholders of the right sizes, a script that exports the game's pictures from your own copy of the game, and a tool that builds the pack. It holds no game art. [How it works](doc/manual/how-it-works.md) describes what the mod patches. Authors of other mods: see [For mod authors](doc/manual/for-mod-authors.md).

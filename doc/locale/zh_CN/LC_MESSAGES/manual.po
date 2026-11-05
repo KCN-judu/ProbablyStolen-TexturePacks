@@ -172,7 +172,7 @@ msgid "Texture Packs keeps `apply` and the sprites until its next rebuild or unt
 msgstr "Texture Packs 会一直拿着 `apply` 和精灵图，直到下一次重建，或你的模组被停用。项目的代码规范禁止玩家离开店铺后还留着店铺里的对象（`GameItem`、`PixelWindow`、`TreeNodeRender`、场景对象），所以 `apply` 里不能捕获这类对象。把当前精灵图存在静态字段里，让你自己的绘制代码去读，就像上面的 `current`；或者在离开店铺时调用 `Withdraw`。"
 
 #: manual/for-mod-authors.md:41
-#: manual/making-a-pack.md:111
+#: manual/making-a-pack.md:113
 msgid "The schema"
 msgstr "schema"
 
@@ -365,7 +365,7 @@ msgid "The mod id works, but it is a weaker name. Two mods can have the same id,
 msgstr "用模组 ID 也行，但这个名字不够牢靠：两个模组可能 ID 相同，模组也可能改名。UUID 由作者一次选定，这两种情况都不受影响，本地副本和创意工坊副本也共用同一个 UUID。按 UUID 写的材质包，在这些情况下都继续有效。"
 
 #: manual/how-it-works.md:51
-#: manual/making-a-pack.md:107
+#: manual/making-a-pack.md:109
 msgid "Pictures of other mods"
 msgstr "其他模组的图"
 
@@ -498,70 +498,74 @@ msgid "Using packs"
 msgstr "使用材质包"
 
 #: manual/index.md:16
+msgid "A pack to try: [Medieval Tavern](https://github.com/KCN-judu/ProbablyStolen-MedievalTavern) (early access), the whole game redrawn as a medieval tavern."
+msgstr "可以试试这个材质包：[Medieval Tavern](https://github.com/KCN-judu/ProbablyStolen-MedievalTavern)（抢先体验），把整个游戏重绘成中世纪酒馆。"
+
+#: manual/index.md:18
 msgid "Put the pack's folder in the game's `Mods` folder."
 msgstr "把材质包的文件夹放进游戏的 `Mods` 文件夹。"
 
-#: manual/index.md:17
+#: manual/index.md:19
 msgid "Enable **Texture Packs** and the pack in the Mods menu, and restart the game."
 msgstr "在模组菜单中启用 **Texture Packs** 和这个材质包，然后重启游戏。"
 
-#: manual/index.md:18
+#: manual/index.md:20
 msgid "Click the settings button of Texture Packs in the Mods menu. It opens the pack manager."
 msgstr "在模组菜单里点 Texture Packs 的设置按钮，打开材质包管理器。"
 
-#: manual/index.md:20
+#: manual/index.md:22
 msgid "The pack manager lists the installed packs, the top one first. Each row has:"
 msgstr "材质包管理器列出已安装的材质包，排在最上面的在最前。每一行有："
 
-#: manual/index.md:22
+#: manual/index.md:24
 msgid "a switch, to turn the pack off without uninstalling it;"
 msgstr "一个开关，可以关掉材质包而不用卸载；"
 
-#: manual/index.md:23
+#: manual/index.md:25
 msgid "the pack's icon, if it has one, and a tooltip with its name, version, author, description and number of pictures;"
 msgstr "材质包的图标（有的话），以及一条提示，写着名称、版本、作者、说明和图片数量；"
 
-#: manual/index.md:24
+#: manual/index.md:26
 msgid "the number of its pictures in use, the number left out because a pack higher up replaces the same picture, and the number skipped;"
 msgstr "生效的图片数、因上面的材质包替换了同一张图而被盖住的图片数，以及被跳过的图片数；"
 
-#: manual/index.md:25
+#: manual/index.md:27
 msgid "**Up** and **Down**, to move the pack one place."
 msgstr "**上移**和**下移**，把材质包移动一位。"
 
-#: manual/index.md:27
+#: manual/index.md:29
 msgid "Changes wait until you click **Apply**. Apply saves the order and puts the packs in place at once, without a restart. **Close** or Escape drops changes you did not apply."
 msgstr "改动要点**应用**后才生效。应用会保存顺序，并立即把材质包换上，不用重启。点**关闭**或按 Esc 会丢掉没有应用的改动。"
 
-#: manual/index.md:29
+#: manual/index.md:31
 msgid "A new pack starts on top and switched on. A pack that is no longer installed keeps its place in the saved order, so it returns to the same place when you install it again."
 msgstr "新装的材质包排在最上面，并且是开启的。已经卸载的材质包在保存的顺序里仍保留位置，再装回来时回到原来的位置。"
 
-#: manual/index.md:31
+#: manual/index.md:33
 msgid "Skipped pictures"
 msgstr "被跳过的图片"
 
-#: manual/index.md:33
+#: manual/index.md:35
 msgid "A picture is skipped when the game has no picture of that name, when no enabled mod has the picture it names, or when its size differs from the original's. The pack manager counts them, and `Player.log` names each one and says why. A broken picture in a pack high in the list does not hide a good one in a pack below it."
 msgstr "游戏里没有这个名字的图、没有已启用的模组带有它指明的图，或者图片尺寸和原图不同，这张图就会被跳过。材质包管理器会统计数量，`Player.log` 会逐个写出文件名和原因。排在上面的材质包里有一张坏图，不会挡住下面材质包里的好图。"
 
-#: manual/index.md:35
+#: manual/index.md:37
 msgid "Settings"
 msgstr "设置"
 
-#: manual/index.md:37
+#: manual/index.md:39
 msgid "The pack manager is the only setting. The order and the switches are saved in the mod's config file as one entry, `packs`."
 msgstr "唯一的设置就是材质包管理器。顺序和开关作为一个条目 `packs` 保存在模组的配置文件里。"
 
-#: manual/index.md:39
+#: manual/index.md:41
 msgid "Compatibility"
 msgstr "兼容性"
 
-#: manual/index.md:41
+#: manual/index.md:43
 msgid "Texture Packs needs no special permissions. It patches `RenderHandler.LoadFromAtlasRaw`, `RenderHandler.LoadFromFile`, `RenderHandler.Awake`, `GameItem.BuildShapeFromSprite`, `GameItem.SetSpriteAndShapeFromMod` and `ModConfigWindow.Open`. See [How it works](how-it-works.md)."
 msgstr "Texture Packs 不需要任何特殊权限。它给 `RenderHandler.LoadFromAtlasRaw`、`RenderHandler.LoadFromFile`、`RenderHandler.Awake`、`GameItem.BuildShapeFromSprite`、`GameItem.SetSpriteAndShapeFromMod` 和 `ModConfigWindow.Open` 打了补丁。见[工作原理](how-it-works.md)。"
 
-#: manual/index.md:43
+#: manual/index.md:45
 msgid "To make a pack, see [Making a texture pack](making-a-pack.md)."
 msgstr "制作材质包请看[制作材质包](making-a-pack.md)。"
 
@@ -785,94 +789,98 @@ msgstr "仓库里有一个预览工具，它像游戏一样摆好店面，再把
 msgid "`--compare` puts the game's own picture above yours. `--hide ShutterDoor` leaves a layer out (here, to see the room behind the serving window), `--list` prints the layers in drawing order, and `--scale 2` enlarges the result. A picture of a size the game does not use is left out and listed. The preview shows the shop view only. It does not draw the customer, the text or the game's lighting effects, so it is for looking at a pack, not a copy of the game's screen. It needs [Python](https://www.python.org/downloads/) and the packages in `tools/export/requirements.txt`."
 msgstr "`--compare` 把游戏自己的图放在你的图上面。`--hide ShutterDoor` 隐藏一个图层（这里是为了看到服务窗口后面的房间），`--list` 按绘制顺序列出所有图层，`--scale 2` 把结果放大。尺寸和游戏不一致的图会被略过，并列在输出里。预览只画店面视图，不画客人、文字和游戏的光照效果，所以它是用来看材质包的，不是游戏画面的复制品。它需要 [Python](https://www.python.org/downloads/) 和 `tools/export/requirements.txt` 里的包。"
 
-#: manual/making-a-pack.md:109
+#: manual/making-a-pack.md:107
+msgid "[Medieval Tavern](https://github.com/KCN-judu/ProbablyStolen-MedievalTavern) is a complete example pack: the game redrawn as a timber-framed tavern, with almost every picture of the catalog. Its repository holds the code that draws the pictures, so it also shows how a pack can be made by code."
+msgstr "[Medieval Tavern](https://github.com/KCN-judu/ProbablyStolen-MedievalTavern) 是一个完整的示例材质包：把游戏重绘成木构架的酒馆，目录里几乎每一张图都画了。它的仓库里有画出这些图的代码，所以也展示了如何用代码制作材质包。"
+
+#: manual/making-a-pack.md:111
 msgid "A pack can also replace the pictures that other mods add: items, papers, and sprites a mod makes in code. The mod does not have to know about your pack, but you need its schema to name and size your pictures."
 msgstr "材质包也可以替换其他模组加进游戏的图：物品、纸张，以及模组在代码里生成的精灵图。模组不需要知道你的材质包，但你需要它的 schema，才能给图命名、确定尺寸。"
 
-#: manual/making-a-pack.md:113
+#: manual/making-a-pack.md:115
 msgid "A schema is a file, `textures.schema.tsv`, that lists every picture of one mod that a pack can replace. It has the first eight columns of `catalog.tsv` (`file`, `kind`, `category`, `group`, `width`, `height`, `source`, `name`), then `origin`, `container` and `version`. For a mod picture, `file` is the name your file must have, `group` is the mod id and `version` is the mod's version."
 msgstr "schema 是一个文件，`textures.schema.tsv`，列出某个模组里所有能被材质包替换的图。它的前八列和 `catalog.tsv` 相同（`file`、`kind`、`category`、`group`、`width`、`height`、`source`、`name`），后面是 `origin`、`container` 和 `version`。对模组的图来说，`file` 是你的文件必须使用的名字，`group` 是模组 ID，`version` 是模组的版本。"
 
-#: manual/making-a-pack.md:115
+#: manual/making-a-pack.md:117
 msgid "If the mod's author ships a schema, it is in the mod's folder."
 msgstr "如果模组作者随模组发布了 schema，它就在模组文件夹里。"
 
-#: manual/making-a-pack.md:116
+#: manual/making-a-pack.md:118
 msgid "If not, write one. Run the script from the kit on the mod's folder; it reads the files and does not run the mod: `python schema\\schema.py \"<game>\\Mods\\machine_mod\"`. It lists the pictures in the mod's `Items` and `Paper` folders. Pictures that the mod makes in code, or keeps in an asset bundle, are not found. Ask the author to list them."
 msgstr "没有的话，自己生成一份。对着模组的文件夹运行工具包里的脚本；它只读文件，不运行模组：`python schema\\schema.py \"<game>\\Mods\\machine_mod\"`。它会列出模组 `Items` 和 `Paper` 文件夹里的图。模组在代码里生成的图，或放在 asset bundle 里的图，脚本找不到，请让作者把它们列出来。"
 
-#: manual/making-a-pack.md:117
+#: manual/making-a-pack.md:119
 msgid "Put the schema in the kit's `schemas` folder, or pass it to the tools with `--schema` as below."
 msgstr "把 schema 放进工具包的 `schemas` 文件夹，或者像下面那样用 `--schema` 传给工具。"
 
-#: manual/making-a-pack.md:119
+#: manual/making-a-pack.md:121
 msgid "The file name"
 msgstr "文件名"
 
-#: manual/making-a-pack.md:121
+#: manual/making-a-pack.md:123
 msgid "A mod's picture is named `<origin>+<container>~<name>.png`. Copy it from the `file` column of the schema, for example:"
 msgstr "模组的图叫 `<origin>+<container>~<name>.png`。从 schema 的 `file` 列复制它，例如："
 
-#: manual/making-a-pack.md:127
+#: manual/making-a-pack.md:129
 msgid "The origin is the mod's UUID. A mod without a UUID is named by its mod id, as in `machine_mod+Items~crusher_body.png`. The picture must have exactly the size in the schema. [How it works](how-it-works.md#what-a-file-name-means) explains the parts of the name."
 msgstr "来源是模组的 UUID。没有 UUID 的模组用模组 ID 命名，如 `machine_mod+Items~crusher_body.png`。图片的尺寸必须和 schema 里的完全一致。名字各部分的含义见[工作原理](how-it-works.md#what-a-file-name-means)。"
 
-#: manual/making-a-pack.md:129
+#: manual/making-a-pack.md:131
 msgid "Export the mod's pictures"
 msgstr "导出模组的图"
 
-#: manual/making-a-pack.md:131
+#: manual/making-a-pack.md:133
 msgid "Give the export script the schemas. `--schema FILE` adds one mod and can be repeated. `--mods DIR` adds every `*/textures.schema.tsv` in a Mods folder:"
 msgstr "把 schema 交给导出脚本。`--schema FILE` 加入一个模组，可以重复使用。`--mods DIR` 加入 Mods 文件夹里每一个 `*/textures.schema.tsv`："
 
-#: manual/making-a-pack.md:137
+#: manual/making-a-pack.md:139
 msgid "The pictures go into `mod/<mod id>/` in the output folder. The script copies each picture from the mod's own `Items` or `Paper` folder, next to the schema. For a picture with no file there, it writes a flat grey rectangle of the right size. `--only mod` exports only the mods' pictures. The game's export is the same as without these options."
 msgstr "这些图放在输出文件夹的 `mod/<mod id>/` 里。脚本从 schema 旁边、模组自己的 `Items` 或 `Paper` 文件夹里复制每张图。那里没有文件的图，脚本写一个尺寸正确的纯灰矩形。`--only mod` 只导出模组的图。不加这些选项时，游戏图的导出和以前完全一样。"
 
-#: manual/making-a-pack.md:139
+#: manual/making-a-pack.md:141
 msgid "Build the pack"
 msgstr "打包"
 
-#: manual/making-a-pack.md:141
+#: manual/making-a-pack.md:143
 msgid "Give PackBuilder the same schemas:"
 msgstr "把同样的 schema 交给 PackBuilder："
 
-#: manual/making-a-pack.md:147
+#: manual/making-a-pack.md:149
 msgid "`--schema` can be repeated. PackBuilder also reads every `*.schema.tsv` in the `schemas` folder next to it. It checks your mod pictures by what they replace, not by how the name is spelled, and reports:"
 msgstr "`--schema` 可以重复使用。PackBuilder 还会读它旁边 `schemas` 文件夹里的每一个 `*.schema.tsv`。它按图要替换的对象来检查你的模组图，而不看名字怎么拼写，并给出这些提示："
 
-#: manual/making-a-pack.md:149
+#: manual/making-a-pack.md:151
 msgid "Message"
 msgstr "提示"
 
-#: manual/making-a-pack.md:149
+#: manual/making-a-pack.md:151
 msgid "What it means"
 msgstr "含义"
 
-#: manual/making-a-pack.md:151
+#: manual/making-a-pack.md:153
 msgid "The size is wrong. The message gives the size in the schema and the mod version the schema was written for. The build stops."
 msgstr "尺寸不对。提示里给出 schema 里的尺寸，以及这份 schema 对应的模组版本。构建会停止。"
 
-#: manual/making-a-pack.md:152
+#: manual/making-a-pack.md:154
 msgid "The mod has a UUID, and the file names it by its id. The message shows the file name to use."
 msgstr "模组有 UUID，而文件用模组 ID 来指代它。提示里会给出该用的文件名。"
 
-#: manual/making-a-pack.md:153
+#: manual/making-a-pack.md:155
 msgid "No schema lists this picture. The mod may be newer or older than the schema, or you gave no schema for it. The file is still copied."
 msgstr "没有任何 schema 列出这张图。可能是模组比 schema 新或旧，也可能是你没有给这个模组的 schema。文件照样会复制。"
 
-#: manual/making-a-pack.md:154
+#: manual/making-a-pack.md:156
 msgid "Two files are one picture, for example the same UUID written in upper and lower case. The build stops."
 msgstr "两个文件指的是同一张图，比如同一个 UUID 一个写成大写、一个写成小写。构建会停止。"
 
-#: manual/making-a-pack.md:156
+#: manual/making-a-pack.md:158
 msgid "When a mod's update changes a picture's size, rewrite its schema and run PackBuilder again: it lists the pictures to redraw."
 msgstr "模组更新后如果改了某张图的尺寸，请重新生成它的 schema 再运行 PackBuilder：它会列出需要重画的图。"
 
-#: manual/making-a-pack.md:158
+#: manual/making-a-pack.md:160
 msgid "In the game"
 msgstr "在游戏里"
 
-#: manual/making-a-pack.md:160
+#: manual/making-a-pack.md:162
 msgid "The picture takes effect only while the mod it names is enabled. If no enabled mod has the origin, or the mod has no such picture, or the size differs from the mod's picture, the picture is skipped. The pack manager counts it, and `Player.log` says why."
 msgstr "只有图所指的模组已启用时，这张图才会生效。没有已启用的模组带有这个来源，或者模组没有这张图，或者尺寸和模组的图不同，这张图就会被跳过。材质包管理器会统计数量，`Player.log` 会说明原因。"

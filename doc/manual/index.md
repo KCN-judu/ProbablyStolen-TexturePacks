@@ -13,6 +13,8 @@ A pack replaces only the pictures it holds. The game's own pictures stay everywh
 
 ## Using packs
 
+A pack to try: [Medieval Tavern](https://github.com/KCN-judu/ProbablyStolen-MedievalTavern) (early access), the whole game redrawn as a medieval tavern.
+
 1. Put the pack's folder in the game's `Mods` folder.
 2. Enable **Texture Packs** and the pack in the Mods menu, and restart the game.
 3. Click the settings button of Texture Packs in the Mods menu. It opens the pack manager.

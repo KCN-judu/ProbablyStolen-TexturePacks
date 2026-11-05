@@ -104,6 +104,8 @@ python tools/preview/preview.py "<game folder>" --pack <your Textures folder> --
 
 `--compare` puts the game's own picture above yours. `--hide ShutterDoor` leaves a layer out (here, to see the room behind the serving window), `--list` prints the layers in drawing order, and `--scale 2` enlarges the result. A picture of a size the game does not use is left out and listed. The preview shows the shop view only. It does not draw the customer, the text or the game's lighting effects, so it is for looking at a pack, not a copy of the game's screen. It needs [Python](https://www.python.org/downloads/) and the packages in `tools/export/requirements.txt`.
 
+[Medieval Tavern](https://github.com/KCN-judu/ProbablyStolen-MedievalTavern) is a complete example pack: the game redrawn as a timber-framed tavern, with almost every picture of the catalog. Its repository holds the code that draws the pictures, so it also shows how a pack can be made by code.
+
 ## Pictures of other mods
 
 A pack can also replace the pictures that other mods add: items, papers, and sprites a mod makes in code. The mod does not have to know about your pack, but you need its schema to name and size your pictures.
