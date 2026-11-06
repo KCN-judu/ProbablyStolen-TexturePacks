@@ -41,6 +41,18 @@ namespace TexturePacks
             return true;
         }
 
+        // The value the entry holds when no replacement of ours is in it: the original while it still holds our
+        // replacement, otherwise what it holds now (someone may have written a new value since). Null when there is
+        // no entry. Packs are planned again without being taken out first, so this is how the original is read.
+        public T OriginalIn(string key, IDictionary<string, T> dictionary, string name)
+        {
+            T now;
+            if (dictionary == null || !dictionary.TryGetValue(name, out now)) return null;
+            Held h;
+            return held.TryGetValue(key, out h) && ReferenceEquals(h.Dictionary, dictionary) && ReferenceEquals(now, h.Replacement)
+                ? h.Original : now;
+        }
+
         // Puts the original back and forgets the key.
         public void Restore(string key)
         {

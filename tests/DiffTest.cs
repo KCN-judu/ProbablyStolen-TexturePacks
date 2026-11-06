@@ -1,6 +1,6 @@
 // Differential tests: each pure module (src/*.Pure.cs) against a plain reference model, on many inputs drawn with a
 // fixed seed from alphabets full of the characters that sit on the boundaries ('-', '+', ';', '%', '.', non-ASCII).
-//   csc -out:DiffTest.exe tests\DiffTest.cs src\PackIds.Pure.cs src\AssetId.Pure.cs src\AssetIdCodec.Pure.cs src\Origins.Pure.cs src\Swapper.Pure.cs src\PackOrder.Pure.cs src\PackResolve.Pure.cs
+//   csc -out:DiffTest.exe tests\DiffTest.cs src\PackIds.Pure.cs src\AssetId.Pure.cs src\AssetIdCodec.Pure.cs src\Origins.Pure.cs src\Swapper.Pure.cs src\PackOrder.Pure.cs src\PackResolve.Pure.cs src\Plan.Pure.cs src\SceneKey.Pure.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -509,9 +509,135 @@ static class DiffTest
         Same("Resume after Restore writes nothing", "reloaded", theirs["a"], "");   // the entry held "reloaded" when it was replaced again
     }
 
+    // ------------------------------------------------------------------ the plan against a brute-force model
+
+    static readonly AssetId[] Pictures = Enumerable.Range(0, 6).Select(i => AssetIdCodec.Parse("items~a@g" + i)).ToArray();
+
+    static int AnySize() { return rng.Next(2) == 0 ? 8 : 16; }
+
+    // Random packs with random files for a few pictures, and a game that has some of them in some size. The
+    // reference walks every (picture, file) pair the plain way; the plan must agree on the winners, the counts and
+    // the rejections.
+    static void Planning()
+    {
+        for (int round = 0; round < Rounds / 4; round++)
+        {
+            var targets = Pictures.ToDictionary(id => id, id => rng.Next(4) == 0
+                ? Target<string>.None(Problem.NoSuchPicture) : Target<string>.Of("sprite " + id, AnySize(), AnySize()));
+            var packs = new List<PackInput<string>>();
+            int n = rng.Next(5);
+            for (int p = 0; p < n; p++)
+            {
+                var files = new List<PackFile<string>>();
+                int m = rng.Next(7);
+                for (int f = 0; f < m; f++) files.Add(new PackFile<string>(Pictures[rng.Next(Pictures.Length)], "p" + p + "/f" + f, AnySize(), AnySize()));
+                packs.Add(new PackInput<string>("p" + p, files));
+            }
+            string input = string.Join(" | ", packs.Select(p => p.Id + ": " + string.Join(",", p.Files.Select(f => f.File + "=" + f.Id + " " + f.Width + "x" + f.Height).ToArray())).ToArray()) +
+                " | game: " + string.Join(",", targets.Select(t => t.Key + (t.Value.Found ? " " + t.Value.Width + "x" + t.Value.Height : " none")).ToArray());
+
+            var plan = Planner.Make<string, string>(packs, id => targets[id]);
+
+            var all = packs.SelectMany(p => p.Files.Select(f => new { Pack = p.Id, File = f })).ToList();
+            var chosen = new List<string>();
+            var counts = packs.ToDictionary(p => p.Id, p => new int[3]);
+            var rejected = new List<string>();
+            foreach (var id in all.Select(x => x.File.Id).Distinct())
+            {
+                var t = targets[id];
+                var files = all.Where(x => x.File.Id.Equals(id)).ToList();
+                var fits = files.Where(x => t.Found && x.File.Width == t.Width && x.File.Height == t.Height).ToList();
+                if (fits.Count > 0) { chosen.Add(id + "=" + fits[0].Pack + ":" + fits[0].File.File + ":" + t.Handle); counts[fits[0].Pack][0]++; }
+                foreach (var x in fits.Skip(1)) counts[x.Pack][1]++;
+                foreach (var x in files.Where(x => !fits.Contains(x)))
+                {
+                    counts[x.Pack][2]++;
+                    rejected.Add(x.Pack + " " + id + " " + (t.Found ? Problem.WrongSize : t.Missing));
+                }
+            }
+
+            Same("chosen", Show(chosen.OrderBy(s => s, StringComparer.Ordinal)),
+                Show(plan.Chosen.Values.Select(c => c.Id + "=" + c.Pack + ":" + c.File + ":" + c.Handle).OrderBy(s => s, StringComparer.Ordinal)), input);
+            Same("counts", Show(counts.Select(kv => kv.Key + " " + string.Join("/", kv.Value.Select(v => v.ToString()).ToArray())).OrderBy(s => s, StringComparer.Ordinal)),
+                Show(plan.Counts.Select(kv => kv.Key + " " + kv.Value.Chosen + "/" + kv.Value.Covered + "/" + kv.Value.Rejected).OrderBy(s => s, StringComparer.Ordinal)), input);
+            Same("rejected", Show(rejected.OrderBy(s => s, StringComparer.Ordinal)),
+                Show(plan.Rejected.Select(r => r.Pack + " " + r.Id + " " + r.Why).OrderBy(s => s, StringComparer.Ordinal)), input);
+        }
+    }
+
+    static Dictionary<AssetId, Choice<string, string>> AnyChoices()
+    {
+        var d = new Dictionary<AssetId, Choice<string, string>>();
+        foreach (var id in Pictures)
+            if (rng.Next(3) > 0) d[id] = new Choice<string, string>(id, "p" + rng.Next(2), "f" + rng.Next(2), "h" + rng.Next(2));
+        return d;
+    }
+
+    static string Show(IDictionary<AssetId, Choice<string, string>> d)
+    {
+        return Show(d.Values.Select(c => c.Id + "=" + c.Pack + ":" + c.File + ":" + c.Handle).OrderBy(s => s, StringComparer.Ordinal));
+    }
+
+    // The laws of the diff on random pairs: taking out Removed and putting in Added turns what is in place into the
+    // next plan; only choices that are in place are taken out and only choices of the next plan are put in; and an
+    // unchanged choice is never touched (Kept counts every one of them, so each side is Kept plus what it moves).
+    static void Diffing()
+    {
+        for (int round = 0; round < Rounds; round++)
+        {
+            var now = AnyChoices();
+            var next = rng.Next(5) == 0 ? new Dictionary<AssetId, Choice<string, string>>(now) : AnyChoices();
+            string input = Show(now) + " -> " + Show(next);
+            var d = PlanDiff<string, string>.Between(now, next, (a, b) => a == b);
+
+            var place = new Dictionary<AssetId, Choice<string, string>>(now);
+            bool fromNow = true, fromNext = true;
+            foreach (var c in d.Removed) { fromNow &= now.ContainsKey(c.Id) && ReferenceEquals(now[c.Id], c); place.Remove(c.Id); }
+            foreach (var c in d.Added) { fromNext &= next.ContainsKey(c.Id) && ReferenceEquals(next[c.Id], c); place[c.Id] = c; }
+            Same("removed and added give the next plan", Show(next), Show(place), input);
+            Same("only choices in place are taken out", true, fromNow, input);
+            Same("only choices of the next plan are put in", true, fromNext, input);
+            int unchanged = now.Count(kv => next.ContainsKey(kv.Key) && kv.Value.Same(next[kv.Key], (a, b) => a == b));
+            Same("kept", unchanged, d.Kept, input);
+            Same("now = kept + removed", now.Count, d.Kept + d.Removed.Count, input);
+            Same("next = kept + added", next.Count, d.Kept + d.Added.Count, input);
+        }
+    }
+
+    // ------------------------------------------------------------------ keys compared without their strings
+
+    // SceneKey stands for the string AssetIdCodec.SceneName spells, and AssetId keeps its hash: both must be equal
+    // exactly when the spelled names are, and equal values must hash alike. Names are drawn from few characters,
+    // dots and digits included, so equal and nearly equal pairs ("a.1" 2x3 against "a" ...) come up often.
+    static void Keys()
+    {
+        const string Chars = "a.1x";
+        Func<string> name = () => { var c = new char[rng.Next(4)]; for (int i = 0; i < c.Length; i++) c[i] = Chars[rng.Next(Chars.Length)]; return new string(c); };
+        for (int i = 0; i < Rounds; i++)
+        {
+            var a = new SceneKey(name(), 1 + rng.Next(3), 1 + rng.Next(3));
+            var b = rng.Next(4) == 0 ? new SceneKey(a.Name, a.Width, a.Height) : new SceneKey(name(), 1 + rng.Next(3), 1 + rng.Next(3));
+            string input = a + " / " + b;
+            bool same = AssetIdCodec.SceneName(a.Name, a.Width, a.Height) == AssetIdCodec.SceneName(b.Name, b.Width, b.Height);
+            Same("SceneKey equal as the spelled names", same, a.Equals(b), input);
+            if (same) Same("equal SceneKeys hash alike", a.GetHashCode(), b.GetHashCode(), input);
+            Same("size key", a.Width == b.Width && a.Height == b.Height, a.SizeKey == b.SizeKey, input);
+
+            var x = AssetIdCodec.Parse(rng.Next(2) == 0 ? "items~a@" + name() + "z" : name() + "z." + a.Width + "x" + a.Height);
+            var y = AssetIdCodec.Parse(rng.Next(3) == 0 && x != null ? AssetIdCodec.Format(x) : rng.Next(2) == 0 ? "items~a@" + name() + "z" : name() + "z." + b.Width + "x" + b.Height);
+            if (x == null || y == null) continue;
+            bool spelledSame = AssetIdCodec.Format(x) == AssetIdCodec.Format(y);
+            Same("AssetId equal as the spelled names", spelledSame, x.Equals(y), x + " / " + y);
+            if (spelledSame) Same("equal AssetIds hash alike", x.GetHashCode(), y.GetHashCode(), x + " / " + y);
+        }
+    }
+
     static int Main()
     {
         Regressions();
+        Keys();
+        Planning();
+        Diffing();
         Identity();
         OriginChoice();
         Swapping();

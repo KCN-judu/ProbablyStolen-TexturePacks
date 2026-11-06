@@ -1,5 +1,5 @@
 // Checks the mod's decisions (src/*.Pure.cs) outside the game: no game or Unity assembly is needed.
-//   csc -out:PureTest.exe tests\PureTest.cs src\PackIds.Pure.cs src\AssetId.Pure.cs src\AssetIdCodec.Pure.cs src\Origins.Pure.cs src\PackOrder.Pure.cs && PureTest.exe
+//   csc -out:PureTest.exe tests\PureTest.cs src\PackIds.Pure.cs src\AssetId.Pure.cs src\AssetIdCodec.Pure.cs src\Origins.Pure.cs src\PackOrder.Pure.cs src\Swapper.Pure.cs src\PackResolve.Pure.cs src\Plan.Pure.cs src\SceneKey.Pure.cs && PureTest.exe
 using System;
 using System.Collections.Generic;
 using TexturePacks;
@@ -152,6 +152,84 @@ static class PureTest
         Check("the top pack then wins", Join(PackOrder.ApplyOrder(list, here)) == "top,bottom");
     }
 
+    // ------------------------------------------------------------------ the plan and its diff
+
+    static readonly AssetId Blender = AssetIdCodec.Parse("items~items_tool2@blender");      // 32x32 in the game below
+    static readonly AssetId Ghost = AssetIdCodec.Parse("items~items_tool2@ghost");          // not in the game
+    static readonly AssetId Wall = AssetIdCodec.Parse("wall.960x540");                       // a scene texture
+    static readonly AssetId Crusher = AssetIdCodec.Parse("machine_mod+Items~crusher");      // a mod that is not enabled
+
+    // The game as the plan sees it, with strings for its objects.
+    static Target<string> Game(AssetId id)
+    {
+        if (id.Equals(Blender)) return Target<string>.Of("blender sprite", 32, 32);
+        if (id.Equals(Wall)) return Target<string>.Of(null, 960, 540);
+        if (id.Origin.IsMod) return Target<string>.None(Problem.OriginNotEnabled);
+        return Target<string>.None(Problem.NoSuchPicture);
+    }
+
+    static PackInput<string> In(string pack, params PackFile<string>[] files) { return new PackInput<string>(pack, files); }
+    static PackFile<string> F(AssetId id, string file, int w, int h) { return new PackFile<string>(id, file, w, h); }
+
+    static bool SameString(string a, string b) { return a == b; }
+
+    static void Plans()
+    {
+        var plan = Planner.Make<string, string>(new[]
+        {
+            In("top", F(Blender, "top/blender", 64, 64), F(Ghost, "top/ghost", 8, 8), F(Wall, "top/wall", 960, 540)),
+            In("middle", F(Blender, "middle/blender", 32, 32), F(Crusher, "middle/crusher", 16, 16)),
+            In("bottom", F(Blender, "bottom/blender", 32, 32)),
+            In("empty"),
+        }, Game);
+        Choice<string, string> c;
+        Check("a file of the wrong size high up does not hide a good one below",
+            plan.Chosen.TryGetValue(Blender, out c) && c.Pack == "middle" && c.File == "middle/blender" && c.Handle == "blender sprite");
+        Check("a scene texture is chosen by its own size", plan.Chosen.TryGetValue(Wall, out c) && c.Pack == "top");
+        Check("nothing is chosen for a picture the game does not have", !plan.Chosen.ContainsKey(Ghost) && !plan.Chosen.ContainsKey(Crusher));
+        Check("counts: top", plan.CountOf("top").Chosen == 1 && plan.CountOf("top").Covered == 0 && plan.CountOf("top").Rejected == 2);
+        Check("counts: middle", plan.CountOf("middle").Chosen == 1 && plan.CountOf("middle").Rejected == 1);
+        Check("counts: bottom is covered", plan.CountOf("bottom").Chosen == 0 && plan.CountOf("bottom").Covered == 1);
+        Check("counts: a pack without files is listed", plan.Counts.ContainsKey("empty"));
+        Check("the mods named are remembered, used or not", plan.Origins.Count == 1 && plan.Origins.Contains(Crusher.Origin));
+        var why = new Dictionary<string, string>();
+        foreach (var r in plan.Rejected) why[r.Pack + " " + r.Id] = r.Describe();
+        Check("wrong size says both sizes", why["top " + Blender] == "is 64x64, the game's picture is 32x32");
+        Check("a missing picture says so", why["top " + Ghost] == "no such sprite in the game");
+        Check("a mod that is not enabled says so", why["middle " + Crusher] == "no enabled mod has the origin machine_mod");
+
+        // The diff from what is in place to the next plan.
+        var same = PlanDiff<string, string>.Between(plan.Chosen, plan.Chosen, SameString);
+        Check("the same plan again changes nothing", same.Empty && same.Kept == 2);
+        var off = Planner.Make<string, string>(new[] { In("bottom", F(Blender, "bottom/blender", 32, 32)) }, Game);
+        var d = PlanDiff<string, string>.Between(plan.Chosen, off.Chosen, SameString);
+        Check("switching packs off takes their pictures out", d.Removed.Count == 2 && d.Kept == 0);
+        Check("and puts the next pack's in", d.Added.Count == 1 && d.Added[0].Pack == "bottom");
+        var moved = PlanDiff<string, string>.Between(plan.Chosen, new Dictionary<AssetId, Choice<string, string>>
+        {
+            { Blender, new Choice<string, string>(Blender, "middle", "middle/blender", "a new blender sprite") },
+            { Wall, plan.Chosen[Wall] },
+        }, SameString);
+        Check("a new object of the game under the same picture is put in again", moved.Removed.Count == 1 && moved.Added.Count == 1 && moved.Kept == 1);
+
+        // The original under a replacement, as ModSprites reads it before planning again.
+        var s = new Swapper<string>();
+        var mine = new Dictionary<string, string> { { "a", "theirs" } };
+        Check("no replacement: the entry is the original", s.OriginalIn("k", mine, "a") == "theirs");
+        s.Replace("k", mine, "a", "pack");
+        Check("our replacement in place: the original is read", s.OriginalIn("k", mine, "a") == "theirs");
+        mine["a"] = "reloaded";
+        Check("someone wrote since: that is the original now", s.OriginalIn("k", mine, "a") == "reloaded");
+        Check("no entry: no original", s.OriginalIn("k", mine, "b") == null);
+
+        // Scene keys: the name and the size, the same identity as the spelled scene name.
+        Check("a scene key is its locator's name and size",
+            SceneKey.Of(Wall.Locator).Equals(new SceneKey("wall", 960, 540)) && SceneKey.Of(Wall.Locator).ToString() == "wall.960x540");
+        Check("same name, other size, other key", !new SceneKey("wall", 960, 540).Equals(new SceneKey("wall", 640, 360)));
+        Check("names compare by their characters", !new SceneKey("Wall", 960, 540).Equals(new SceneKey("wall", 960, 540)));
+        Check("the size key tells sizes apart", SceneKey.Size(960, 540) != SceneKey.Size(540, 960) && SceneKey.Size(1, 0) != SceneKey.Size(0, 1));
+    }
+
     static int Main()
     {
         Key("Items~items_tool@wrench", "Items/items_tool", "wrench");
@@ -186,6 +264,7 @@ static class PureTest
         Identity();
         Origins();
         Order();
+        Plans();
         Console.WriteLine(failed == 0 ? "all passed" : failed + " failed");
         return failed == 0 ? 0 : 1;
     }

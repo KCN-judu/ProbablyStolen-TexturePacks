@@ -17,7 +17,7 @@ namespace TexturePacks
         static OriginInfo Describe(LoadedMod mod)
         {
             string id = mod.Manifest.ID;
-            return OriginResolver.Resolve(id, mod.Textures == null ? null : mod.Textures.Keys.ToList(), ProviderBridge.DeclaredOrigin(id));
+            return OriginResolver.Resolve(id, mod.Textures == null ? null : (IEnumerable<string>)mod.Textures.Keys,ProviderBridge.DeclaredOrigin(id));
         }
 
         // The origin of a mod, or null; no warning. For asking about a mod that has just finished loading.

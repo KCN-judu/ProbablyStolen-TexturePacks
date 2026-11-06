@@ -46,8 +46,8 @@ namespace TexturePacks
             return back != null && back.Equals(id) ? text : null;
         }
 
-        // The name a scene texture is looked up by: the game's texture name and its pixel size. SceneTextures asks
-        // for it with the name and size of each texture in memory, so it builds no AssetId per texture.
+        // The file name of a scene texture: the game's texture name and its pixel size. SceneTextures looks textures
+        // up by SceneKey, the same identity without building this string.
         public static string SceneName(string texture, int width, int height)
         {
             return texture + SizeSeparator + width + "x" + height;

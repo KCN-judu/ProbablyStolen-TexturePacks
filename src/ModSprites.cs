@@ -36,6 +36,13 @@ namespace TexturePacks
                 if (sprite == Original) swapper.Restore(key);
                 else if (!swapper.Replace(key, dictionary, name, sprite)) throw new InvalidOperationException("the mod no longer has the picture " + name);
             }
+
+            // The same entry of the same dictionary, with the same original: a choice on it is still in place.
+            public override bool Same(ExternalTarget other)
+            {
+                var o = other as Target;
+                return o != null && o.key == key && ReferenceEquals(o.dictionary, dictionary) && o.Original == Original;
+            }
         }
 
         static string KeyOf(string modId, string container, string name) { return modId + "/" + container + "/" + name; }
@@ -47,9 +54,11 @@ namespace TexturePacks
             if (!locator.IsModAsset) return null;
             Dictionary<string, Sprite> dictionary = locator.Path == ItemsContainer ? mod.Sprites
                 : locator.Path == PaperContainer ? mod.PaperSprites : null;
-            Sprite original;
-            if (dictionary == null || !dictionary.TryGetValue(locator.Name, out original) || original == null) return null;
-            return new Target(original, dictionary, KeyOf(mod.Manifest.ID, locator.Path, locator.Name), locator.Name);
+            // The entry may hold a pack's sprite from the last plan; the original is what it held before.
+            string key = KeyOf(mod.Manifest.ID, locator.Path, locator.Name);
+            Sprite original = swapper.OriginalIn(key, dictionary, locator.Name);
+            if (original == null) return null;
+            return new Target(original, dictionary, key, locator.Name);
         }
 
         // What Suspend leaves for Resume: which picture, and the replacement to put back.

@@ -29,6 +29,14 @@ namespace TexturePacks
             readonly Action<Sprite> apply;
             public Target(Sprite original, Action<Sprite> apply) : base(original) { this.apply = apply; }
             public override void Set(Sprite sprite) { apply(sprite); }
+
+            // The same original handed to the same delegate. A provider that makes a new delegate on every listing
+            // gets its pictures put in again on every plan, which is correct, only not free.
+            public override bool Same(ExternalTarget other)
+            {
+                var o = other as Target;
+                return o != null && o.Original == Original && Equals(o.apply, apply);
+            }
         }
 
         // The rows of each mod, read once per Rebuild (Begin) and looked up by container and name.

@@ -16,75 +16,80 @@ namespace TexturePacks
         // Puts a sprite where the mod's picture is read from. Called with the pack's sprite, and with Original to
         // put the mod's own back.
         public abstract void Set(Sprite sprite);
+
+        // Whether a choice put in place on `other` is still in place on this one (see PlanDiff): the same place in
+        // the mod, with the same original.
+        public abstract bool Same(ExternalTarget other);
     }
 
-    // The pictures of other mods, found by identity and replaced for as long as the packs that choose them are on.
-    //
-    // The whole state is the list of targets that hold a replacement now and the sprites made for them. Clear puts
-    // every original back first, so each Rebuild starts from the mods' own pictures. Nothing here is a store object:
-    // the targets point at mod assets (sprites, textures, a mod's own delegates), and Clear empties it all when the
-    // mod is disabled.
+    // The pictures of other mods, found by identity. Packs keeps which of them hold a pack's sprite (as choices of
+    // its plan) and calls Set and Restore here; this class only finds the targets and runs the mods' code safely.
+    // Nothing here is a store object: the targets point at mod assets (sprites, a mod's own delegates), and Clear
+    // empties it all when the mod is disabled.
     static class ExternalAssets
     {
-        static readonly List<ExternalTarget> replaced = new List<ExternalTarget>();
-        static readonly List<Sprite> made = new List<Sprite>();
+        // Whether ModOrigins has been read for the current plan.
+        static bool originsRead;
 
-        public static int Count { get { return replaced.Count; } }
-
-        // Reads, once per Rebuild, which mod has which origin (ModOrigins) and what the mods offer in code.
+        // Starts a plan: which mod has which origin (ModOrigins) and what the mods offer in code are read again,
+        // when first asked. Reading the origins goes through every texture name of every enabled mod, the packs'
+        // own included, so a plan in which no pack names a picture of another mod never reads them.
         public static void Begin()
         {
-            ModOrigins.Rebuild();
+            originsRead = false;
             ProviderBridge.Begin();
+        }
+
+        static void ReadOrigins()
+        {
+            if (originsRead) return;
+            ModOrigins.Rebuild();
+            originsRead = true;
         }
 
         // The target for an identity of a mod, or null when no enabled mod has that origin or the mod has no such
         // picture. A picture a mod offers from code wins over one from its folders.
         public static ExternalTarget Find(AssetId id)
         {
+            ReadOrigins();
             LoadedMod mod = ModOrigins.Find(id.Origin);
             if (mod == null) return null;
             return ProviderBridge.Find(mod, id.Locator) ?? ModSprites.Find(mod, id.Locator);
         }
 
-        // Why Find found nothing, for the warning in Player.log.
-        public static string Missing(AssetId id)
+        // Why Find found nothing.
+        public static Problem Missing(AssetId id)
         {
-            return ModOrigins.Find(id.Origin) == null
-                ? "no enabled mod has the origin " + id.Origin
-                : "the mod has no picture " + id.Locator.Path + "/" + id.Locator.Name;
+            ReadOrigins();
+            return ModOrigins.Find(id.Origin) == null ? Problem.OriginNotEnabled : Problem.NoSuchModPicture;
         }
 
         // Puts a sprite in place of the target's picture. A provider's own code runs here, so a failure is logged
         // and leaves the picture as it was.
-        public static bool Replace(ExternalTarget target, Sprite sprite)
+        public static bool Set(ExternalTarget target, Sprite sprite)
         {
-            try { target.Set(sprite); }
+            try { target.Set(sprite); return true; }
             catch (Exception e)
             {
                 Debug.LogWarning(TexturePacksMod.Tag + "could not replace a picture of another mod: " + e.Message);
                 return false;
             }
-            replaced.Add(target);
-            made.Add(sprite);
-            return true;
         }
 
-        // Puts every original back. The replacement sprites go to `retired`, which Packs destroys once the scene
-        // that may still show them is gone.
-        public static void Clear(List<Sprite> retired)
+        // Puts the mod's own picture back.
+        public static void Restore(ExternalTarget target)
         {
-            foreach (var target in replaced)
-            {
-                try { target.Set(target.Original); }
-                catch (Exception e) { Debug.LogWarning(TexturePacksMod.Tag + "could not restore a picture of another mod: " + e.Message); }
-            }
-            replaced.Clear();
-            retired.AddRange(made);
-            made.Clear();
+            try { target.Set(target.Original); }
+            catch (Exception e) { Debug.LogWarning(TexturePacksMod.Tag + "could not restore a picture of another mod: " + e.Message); }
+        }
+
+        // Called after every choice has been restored (Packs.Clear).
+        public static void Clear()
+        {
             ModSprites.Clear();
             ProviderBridge.Clear();
             ModOrigins.Clear();
+            originsRead = false;
         }
     }
 }

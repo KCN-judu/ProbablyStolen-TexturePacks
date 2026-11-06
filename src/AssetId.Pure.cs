@@ -121,8 +121,15 @@ namespace TexturePacks
     {
         public readonly Origin Origin;
         public readonly Locator Locator;
+        // Computed once: an identity is hashed several times per Rebuild (the candidates, the plan, both sides of the
+        // diff, what is in place), and each hash would otherwise hash its strings again.
+        readonly int hash;
 
-        AssetId(Origin origin, Locator locator) { Origin = origin; Locator = locator; }
+        AssetId(Origin origin, Locator locator)
+        {
+            Origin = origin; Locator = locator;
+            hash = origin.GetHashCode() * 397 ^ locator.GetHashCode();
+        }
 
         // Null when the pair does not belong together (the game has no mod assets, a mod has no Resources sprites).
         public static AssetId Of(Origin origin, Locator locator)
@@ -131,9 +138,13 @@ namespace TexturePacks
             return origin.IsGame != locator.IsModAsset ? new AssetId(origin, locator) : null;
         }
 
-        public bool Equals(AssetId o) { return o != null && o.Origin.Equals(Origin) && o.Locator.Equals(Locator); }
+        // Different hashes settle most unequal pairs before any string is compared.
+        public bool Equals(AssetId o)
+        {
+            return ReferenceEquals(o, this) || (o != null && o.hash == hash && o.Origin.Equals(Origin) && o.Locator.Equals(Locator));
+        }
         public override bool Equals(object obj) { return Equals(obj as AssetId); }
-        public override int GetHashCode() { return Origin.GetHashCode() * 397 ^ Locator.GetHashCode(); }
+        public override int GetHashCode() { return hash; }
 
         // The pack file name; a readable form for an identity that has none.
         public override string ToString() { return AssetIdCodec.Format(this) ?? Origin + ":" + Locator.Path + "/" + Locator.Name; }
